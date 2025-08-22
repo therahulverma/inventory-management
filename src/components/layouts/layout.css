@@ -1,0 +1,8 @@
+.jss1 {
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  flex-direction: row;
+  background-color: #edf2f5;
+}

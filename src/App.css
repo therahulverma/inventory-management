@@ -1,0 +1,22 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* color: rgb(17, 23, 29); */
+}
+
+::-webkit-scrollbar {
+  height: 3px;
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(17, 23, 29);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #f2f2f2;
+  border-radius: 5px;
+  box-shadow: inset 0 0 6px #0003;
+  -webkit-box-shadow: inset 0 0 6px #0003;
+}

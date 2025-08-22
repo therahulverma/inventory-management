@@ -1,0 +1,67 @@
+.serviceOrderListContainer {
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 220px);
+}
+
+.serviceOrderListContainer .MuiPickTable {
+  border: none;
+  margin-bottom: 5px;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.BlockContainer {
+  height: 84px;
+  display: flex;
+  padding: 24px;
+  box-shadow: 0 1px 0 0 #e2e2e2;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.jss1267 .heading-bar {
+  display: flex;
+  padding: 0px;
+  min-height: 0px;
+  background-color: #fff;
+}
+
+.MuiTypography-h4 {
+  color: #0f2e66 !important;
+  font-size: 1.25rem !important;
+  font-family: Roboto !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  letter-spacing: normal !important;
+}
+
+.jss1288 {
+  display: flex;
+  padding: 24px;
+  width: 100%;
+}
+
+.jss1289 {
+  display: flex;
+  border: solid 1px #bcbecc;
+  flex-grow: 1;
+  width: 100%;
+}
+.position-relative {
+  position: relative;
+  width: 100%;
+}
+
+.customerListPage .MuiPickTable .borderBottomRadius .tableWrapper {
+  height: 270px;
+  overflow-y: scroll;
+}
+
+.customerListPage .MuiTableHead-root {
+  position: sticky;
+  top: 0;
+  background: white; /* so header stays visible */
+  z-index: 1;
+}
