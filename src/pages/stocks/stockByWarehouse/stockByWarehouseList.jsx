@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Paper from "@mui/material/Paper";
 import "../../users/users.css";
 import useFetchData from "../../../hooks/useFetchData";
@@ -17,15 +17,18 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useNavigate } from "react-router-dom";
 import { PERMISSIONS } from "../../../utils/constants";
 import { useSelector } from "react-redux";
+import axios from "axios";
 
 const selectedColumns = {
-  name: "Warehouse Name",
-  postalCode: "PIN Code",
-  city: "City",
-  state: "State",
+  sku: "SKU ID",
+  warehouseName: "Warehouse Name",
+  productName: "Product Name",
+  quantity: "Quantity",
 };
 
 function StockByWarehouseList() {
+  const [warehouseId, setWarehouseId] = useState(0);
+  const [warehouseData, setWarehouseData] = useState([]);
   const navigate = useNavigate();
   const { data, loading, error } = useFetchData(
     `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses`
@@ -33,6 +36,20 @@ function StockByWarehouseList() {
   const rolePermissions = useSelector(
     (state) => state.roleManagement.rolePermissions
   );
+
+  const hndleChange = async (e) => {
+    setWarehouseId(e.target.value);
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/inventory/details/${e.target.value}`
+      );
+
+      setWarehouseData(res?.data?.data);
+    } catch (err) {
+      alert("Error:", err);
+      console.log("Error:", err);
+    }
+  };
 
   if (loading) return <Loading />;
   if (error) return <Error />;
@@ -60,20 +77,20 @@ function StockByWarehouseList() {
                     <Select
                       labelId={`warehouse-label`}
                       id="Warehouse"
-                      //   value={value || ""}
+                      value={warehouseId || ""}
                       label="Warehouse"
-                      //   onChange={(e) => onChange(name, e.target.value)}
+                      onChange={hndleChange}
                       //   disabled={disabled}
                     >
-                      {/* {options.map((opt) => (
-                        <MenuItem key={opt.id.toString()} value={opt.value}>
-                          {opt.value}
+                      {data?.data.map((opt) => (
+                        <MenuItem key={opt.id.toString()} value={opt.id}>
+                          {opt.name}
                         </MenuItem>
-                      ))} */}
+                      ))}
                     </Select>
                   </FormControl>
                 </div>
-                <div
+                {/* <div
                   style={{ display: "flex", gap: 10, justifyContent: "center" }}
                 >
                   <Button
@@ -83,22 +100,20 @@ function StockByWarehouseList() {
                   >
                     Search
                   </Button>
-                </div>
+                </div> */}
               </div>
-              {rolePermissions?.includes(PERMISSIONS.LOCATIONS_VIEW) && (
-                <div className="jss1275 borderBottomRadius">
-                  <DynamicTable
-                    data={data.data}
-                    columns={selectedColumns}
-                    isEdit={
-                      rolePermissions?.includes(PERMISSIONS.LOCATIONS_VIEW)
-                        ? true
-                        : false
-                    }
-                    isCheckbox={false}
-                  />
-                </div>
-              )}
+              {warehouseData.length > 0 &&
+                rolePermissions?.includes(
+                  PERMISSIONS.STOCKBYWAREHOUSE_VIEW
+                ) && (
+                  <div className="jss1275 borderBottomRadius">
+                    <DynamicTable
+                      data={warehouseData}
+                      columns={selectedColumns}
+                      isCheckbox={false}
+                    />
+                  </div>
+                )}
             </Paper>
           </div>
         </div>

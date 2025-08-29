@@ -5,45 +5,17 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import DynamicForm from "../../components/form/form";
 
-const cities = [
-  { id: 1, name: "City", value: "Delhi", description: "", isActive: "Y" },
-  { id: 2, name: "City", value: "Mumbai", description: "", isActive: "Y" },
-  { id: 3, name: "City", value: "Bengaluru", description: "", isActive: "Y" },
-  { id: 4, name: "City", value: "Chennai", description: "", isActive: "Y" },
-  { id: 5, name: "City", value: "Kolkata", description: "", isActive: "Y" },
-];
-
-// States
-const states = [
-  {
-    id: 6,
-    name: "State",
-    value: "Maharashtra",
-    description: "",
-    isActive: "Y",
-  },
-  { id: 7, name: "State", value: "Karnataka", description: "", isActive: "Y" },
-  { id: 8, name: "State", value: "Tamil Nadu", description: "", isActive: "Y" },
-  {
-    id: 9,
-    name: "State",
-    value: "Uttar Pradesh",
-    description: "",
-    isActive: "Y",
-  },
-  {
-    id: 10,
-    name: "State",
-    value: "West Bengal",
-    description: "",
-    isActive: "Y",
-  },
-];
-
 function PartnerForm() {
   const navigate = useNavigate();
   const { id } = useParams(); // ✅ get productId from route (for edit)
   const isEditMode = Boolean(id);
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [states, setStates] = useState([]);
+  const [countryCode, setCountryCode] = useState("");
+  const [stateCode, setStateCode] = useState("");
+  const [cityCode, setCityCode] = useState("");
+
   //   const [options, setOptions] = useState({
   //     brand: [],
   //     size: [],
@@ -89,10 +61,10 @@ function PartnerForm() {
       required: true,
     },
     {
-      name: "city",
-      label: "City",
+      name: "country",
+      label: "Country",
       type: "select",
-      options: cities,
+      options: countries,
       required: true,
     },
     {
@@ -100,6 +72,13 @@ function PartnerForm() {
       label: "State",
       type: "select",
       options: states,
+      required: true,
+    },
+    {
+      name: "city",
+      label: "City",
+      type: "select",
+      options: cities,
       required: true,
     },
     {
@@ -124,6 +103,7 @@ function PartnerForm() {
     phone: "",
     gstin: "",
     address: "",
+    country: "",
     city: "",
     state: "",
     postalCode: "",
@@ -132,6 +112,11 @@ function PartnerForm() {
   useEffect(() => {
     (async () => {
       try {
+        const country = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`
+        );
+        setCountries(country?.data?.data);
+        console.log(country, "REACT_APP_MASTER_DATA_API_PORT");
         // const [brand, size, color, os] = await Promise.all([
         //   axios.get(apiEndpoints.brand),
         //   axios.get(apiEndpoints.size),
@@ -161,6 +146,7 @@ function PartnerForm() {
             email: data.email,
             phone: data.phone,
             gstin: data.gstin,
+            country: data.country,
             address: data.address,
             city: data.city,
             state: data.state,
@@ -183,6 +169,7 @@ function PartnerForm() {
       "phone",
       "gstin",
       "address",
+      "country",
       "city",
       "state",
       "postalCode",

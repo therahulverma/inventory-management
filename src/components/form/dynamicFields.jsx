@@ -1,5 +1,6 @@
 import { TextField, TextareaAutosize } from "@mui/material";
 import SelectField from "../../components/select/select";
+import { SELECT_TYPE } from "../../utils/constants";
 
 function DynamicField({ field, value, onChange, isEditMode, onBlur }) {
   const { name, label, type, required, disabledOnEdit, options } = field;
@@ -33,6 +34,21 @@ function DynamicField({ field, value, onChange, isEditMode, onBlur }) {
           onChange={onChange}
           options={options || []}
           required={required}
+          type={SELECT_TYPE.SELECT_NORMAL}
+        />
+      );
+
+    case "select-country":
+      return (
+        <SelectField
+          key={name}
+          label={label}
+          name={name}
+          value={value}
+          onChange={onChange}
+          options={options || []}
+          required={required}
+          type={SELECT_TYPE.SELECT_COUNTRY}
         />
       );
 
