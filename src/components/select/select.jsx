@@ -1,11 +1,5 @@
-import {
-  FormControl,
-  FormHelperText,
-  InputLabel,
-  MenuItem,
-  Select,
-} from "@mui/material";
 import React from "react";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 function SelectField({
   label,
@@ -18,12 +12,15 @@ function SelectField({
 }) {
   return (
     <div style={{ width: "45%", margin: 5 }}>
-      <FormControl fullWidth size="small">
-        <InputLabel id={`${name}-label`}>{label}</InputLabel>
+      <FormControl fullWidth size="small" required={required}>
+        <InputLabel id={`${name}-label`} required={required}>
+          {label}
+        </InputLabel>
         <Select
           labelId={`${name}-label`}
           id={label}
           value={value || ""}
+          label={label}
           onChange={(e) => onChange(name, e.target.value)}
           disabled={disabled}
         >
@@ -33,9 +30,6 @@ function SelectField({
             </MenuItem>
           ))}
         </Select>
-        {required && !value && (
-          <FormHelperText>{label} is required</FormHelperText>
-        )}
       </FormControl>
     </div>
   );

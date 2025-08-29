@@ -8,7 +8,7 @@ function TableTopBar(props) {
   return (
     <div className="BlockContainer">
       <Typography variant="h4" gutterBottom>
-        {`${totalRecords} ${title}`}
+        {`${totalRecords ? totalRecords : ""} ${title}`}
       </Typography>
       <div className="heading-bar">
         {CustomComponent && <CustomComponent />}

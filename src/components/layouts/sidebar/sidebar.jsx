@@ -17,6 +17,7 @@ import Tooltip from "@mui/material/Tooltip";
 import HandshakeIcon from "@mui/icons-material/Handshake";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import SmartphoneIcon from "@mui/icons-material/Smartphone";
+import SettingsIcon from "@mui/icons-material/Settings";
 import {
   ListItemText,
   MenuItem,
@@ -25,6 +26,9 @@ import {
   Popover,
   Typography,
 } from "@mui/material";
+import { PERMISSIONS } from "../../../utils/constants";
+import { useSelector } from "react-redux";
+import { useAuth } from "../../../AuthContext";
 
 const initialNavItems = [
   {
@@ -33,6 +37,7 @@ const initialNavItems = [
     status: true, // or "inactive"
     path: "/", // optional if you use routes
     children: null, // no nested menu
+    permissionKey: "",
   },
   {
     label: "Users",
@@ -40,6 +45,7 @@ const initialNavItems = [
     status: false, // or "inactive"
     path: "/users", // optional if you use routes
     children: null, // no nested menu
+    permissionKey: PERMISSIONS.USERS_MENU,
   },
   {
     label: "Partner",
@@ -47,6 +53,7 @@ const initialNavItems = [
     status: false,
     path: "/partners",
     children: null,
+    permissionKey: PERMISSIONS.PARTNER_MENU,
   },
   {
     label: "Suppliers",
@@ -54,6 +61,7 @@ const initialNavItems = [
     status: false,
     path: "/suppliers",
     children: null,
+    permissionKey: PERMISSIONS.SUPPLIER_MENU,
   },
   {
     label: "Products",
@@ -61,27 +69,33 @@ const initialNavItems = [
     status: false,
     path: "/products",
     children: null,
+
+    permissionKey: PERMISSIONS.PRODUCT_MENU,
   },
   {
     label: "Inventory",
     icon: <Inventory2OutlinedIcon style={{ marginRight: 15 }} />,
     status: false,
     path: null,
+    permissionKey: PERMISSIONS.INVENTORY_MENU,
     children: [
       {
         label: "Inventory Transfer",
         path: "/inventory/transfer",
         status: false,
+        permissionKey: PERMISSIONS.INVENTORY_TRANSFER_MENU,
       },
       {
         label: "Inventory Upload",
-        path: "/inventory/upload",
+        path: "/inventory/upload-list",
         status: false,
+        permissionKey: PERMISSIONS.INVENTORY_UPLOAD_MENU,
       },
       {
         label: "Inventory Search",
         path: "/inventory/search",
         status: false,
+        permissionKey: PERMISSIONS.INVENTORY_SEARCH_MENU,
       },
     ],
   },
@@ -90,9 +104,48 @@ const initialNavItems = [
     icon: <ShowChartIcon style={{ marginRight: 15 }} />,
     status: false,
     path: null,
+    permissionKey: PERMISSIONS.STOCK_MENU,
     children: [
-      { label: "Stock Locations", path: "/stock/locations", status: false },
-      { label: "Stock Items", path: "/stock/items", status: false },
+      {
+        label: "Stock Locations",
+        path: "/stock/locations",
+        status: false,
+        permissionKey: PERMISSIONS.STOCK_LOCATIONS_MENU,
+      },
+      {
+        label: "Stock Items",
+        path: "/stock/items",
+        status: false,
+        permissionKey: PERMISSIONS.STOCK_ITEMS_MENU,
+      },
+      {
+        label: "Stock by warehouse",
+        path: "/stock/stock-by-warehouse",
+        status: false,
+        permissionKey: PERMISSIONS.STOCK_STOCKBYWAREHOUSE_MENU,
+      },
+    ],
+  },
+  ,
+  {
+    label: "Master Configuration",
+    icon: <SettingsIcon style={{ marginRight: 15 }} />,
+    status: false,
+    path: null,
+    permissionKey: PERMISSIONS.MASTERCONFIG_MENU,
+    children: [
+      {
+        label: "Role Management",
+        path: "/role/role-management",
+        status: false,
+        permissionKey: PERMISSIONS.MASTERCONFIG_ROLEMANAGEMENT_MENU,
+      },
+      {
+        label: "Permission Management",
+        path: "/role/permission-management",
+        status: false,
+        permissionKey: PERMISSIONS.MASTERCONFIG_PERMISSIONMANAGEMENT_MENU,
+      },
     ],
   },
 ];
@@ -102,7 +155,11 @@ export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [openIndex, setOpenIndex] = useState(null);
+  const rolePermissions = useSelector(
+    (state) => state.roleManagement.rolePermissions
+  );
 
+  console.log("rolePermissions:", rolePermissions);
   const handleClick = (event, idx) => {
     setAnchorEl(event.currentTarget);
     setOpenIndex(idx);
@@ -190,75 +247,88 @@ export default function Sidebar({ isOpen, onClose }) {
                           const hasChildren = !!item.children;
                           const isPopoverOpen = openIndex === idx;
                           return (
-                            <div key={idx}>
-                              <Tooltip
-                                title={`${!isOpen ? item.label : ""}`}
-                                disableInteractive
-                              >
-                                <Button
-                                  onClick={(e) => {
-                                    toggleStatus(idx, "DOWN");
-                                    if (hasChildren) {
-                                      handleClick(e, idx); // open popover
-                                    } else if (item.path) {
-                                      navigate(item.path);
-                                    }
-                                  }}
-                                  className={`MuiButtonBase-root MuiButton-root MuiButton-text NavItem MuiButton-fullWidth ${
-                                    item.status && "NavActive"
-                                  }`}
-                                  // disabled={item.status !== false}
+                            rolePermissions?.includes(item.permissionKey) && (
+                              <div key={idx}>
+                                <Tooltip
+                                  title={`${!isOpen ? item.label : ""}`}
+                                  disableInteractive
                                 >
-                                  {item.icon}
-                                  <span className="NavItemText">
-                                    {item.label}
-                                  </span>
-                                  {hasChildren && (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                        width: "100%",
-                                      }}
-                                    >
-                                      <KeyboardArrowRightIcon />
-                                    </div>
-                                  )}
-                                </Button>
-                              </Tooltip>
-                              {hasChildren && (
-                                <Popover
-                                  open={isPopoverOpen}
-                                  anchorEl={anchorEl}
-                                  onClose={handleClose}
-                                  anchorOrigin={{
-                                    vertical: "left",
-                                    horizontal: "right",
-                                  }}
-                                  sx={{
-                                    marginLeft: "8px",
-                                  }}
-                                >
-                                  <Paper elevation={3}>
-                                    <MenuList>
-                                      {item.children.map((child, cIdx) => (
-                                        <MenuItem
-                                          key={cIdx}
-                                          onClick={() => {
-                                            navigate(child.path);
-                                            handleClose();
+                                  <Button
+                                    onClick={(e) => {
+                                      toggleStatus(idx, "DOWN");
+                                      if (hasChildren) {
+                                        handleClick(e, idx); // open popover
+                                      } else if (item.path) {
+                                        navigate(item.path);
+                                      }
+                                    }}
+                                    className={`MuiButtonBase-root MuiButton-root MuiButton-text NavItem MuiButton-fullWidth ${
+                                      item.status && "NavActive"
+                                    }`}
+                                    // disabled={item.status !== false}
+                                  >
+                                    {item.icon}
+                                    <span className="NavItemText">
+                                      {item.label}
+                                    </span>
+                                    {hasChildren &&
+                                      rolePermissions?.includes(
+                                        item.permissionKey
+                                      ) && (
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            justifyContent: "flex-end",
+                                            width: "100%",
                                           }}
                                         >
-                                          <span className="NavItemText">
-                                            {child.label}
-                                          </span>
-                                        </MenuItem>
-                                      ))}
-                                    </MenuList>
-                                  </Paper>
-                                </Popover>
-                              )}
-                            </div>
+                                          <KeyboardArrowRightIcon />
+                                        </div>
+                                      )}
+                                  </Button>
+                                </Tooltip>
+                                {hasChildren &&
+                                  rolePermissions?.includes(
+                                    item.permissionKey
+                                  ) && (
+                                    <Popover
+                                      open={isPopoverOpen}
+                                      anchorEl={anchorEl}
+                                      onClose={handleClose}
+                                      anchorOrigin={{
+                                        vertical: "left",
+                                        horizontal: "right",
+                                      }}
+                                      sx={{
+                                        marginLeft: "8px",
+                                      }}
+                                    >
+                                      <Paper elevation={3}>
+                                        <MenuList>
+                                          {item.children.map(
+                                            (child, cIdx) =>
+                                              rolePermissions?.includes(
+                                                child.permissionKey
+                                              ) && (
+                                                <MenuItem
+                                                  key={cIdx}
+                                                  onClick={() => {
+                                                    navigate(child.path);
+                                                    handleClose();
+                                                  }}
+                                                >
+                                                  <span className="NavItemText">
+                                                    {child.label}
+                                                  </span>
+                                                </MenuItem>
+                                              )
+                                          )}
+                                        </MenuList>
+                                      </Paper>
+                                    </Popover>
+                                  )}
+                              </div>
+                            )
                           );
                         })}
                       </div>

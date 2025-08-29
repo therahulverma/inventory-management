@@ -6,6 +6,11 @@ import DynamicTable from "../../components/table/dynamicTable";
 import Loading from "../../components/loading/loading";
 import Error from "../../components/error/error";
 import TableTopBar from "../../components/table-top-bar/tableTopBar";
+import { Button } from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { PERMISSIONS } from "../../utils/constants";
 
 const selectedColumns = {
   companyName: "Partner Name",
@@ -15,10 +20,13 @@ const selectedColumns = {
 };
 
 function Partners() {
+  const navigate = useNavigate();
   const { data, loading, error } = useFetchData(
     `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/partners`
   );
-
+  const rolePermissions = useSelector(
+    (state) => state.roleManagement.rolePermissions
+  );
   if (loading) return <Loading />;
   if (error) return <Error />;
 
@@ -28,10 +36,38 @@ function Partners() {
         <div className="MuiPickTable">
           <div>
             <Paper elevation={3}>
-              <TableTopBar totalRecords={data?.data?.length} title="Partners" />
-              <div className="jss1275 borderBottomRadius">
-                <DynamicTable data={data.data} columns={selectedColumns} />
-                {/* <Table stickyHeader aria-label="sticky table">
+              <TableTopBar
+                totalRecords={data?.data?.length}
+                title="Partners"
+                CustomComponent={() =>
+                  rolePermissions?.includes(PERMISSIONS.PARTNER_CREATE) && (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => {
+                        navigate("/partners/create");
+                      }}
+                    >
+                      Create Partner
+                    </Button>
+                  )
+                }
+              />
+              {rolePermissions?.includes(PERMISSIONS.PARTNER_VIEW) && (
+                <div className="jss1275 borderBottomRadius">
+                  <DynamicTable
+                    data={data.data}
+                    columns={selectedColumns}
+                    editRoute="/partners/edit/"
+                    isEdit={
+                      rolePermissions?.includes(PERMISSIONS.PARTNER_EDIT)
+                        ? true
+                        : false
+                    }
+                    isCheckbox={false}
+                  />
+                  {/* <Table stickyHeader aria-label="sticky table">
                     <TableHead>
                       <TableRow>
                         {columns.map((column) => (
@@ -77,7 +113,8 @@ function Partners() {
                         })}
                     </TableBody>
                   </Table> */}
-              </div>
+                </div>
+              )}
             </Paper>
           </div>
         </div>

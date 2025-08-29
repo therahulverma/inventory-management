@@ -1,9 +1,8 @@
-import { Button, Paper, TextareaAutosize, TextField } from "@mui/material";
 import "../users/users.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import SelectField from "../../components/select/select";
+import DynamicForm from "../../components/form/form";
 
 const apiEndpoints = {
   brand: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Brands`,
@@ -22,6 +21,64 @@ export default function ProductForm() {
     color: [],
     os: [],
   });
+
+  const formConfig = [
+    {
+      name: "productName",
+      label: "Product Name",
+      type: "text",
+      required: true,
+      disabledOnEdit: true,
+    },
+    {
+      name: "sku",
+      label: "SKU Id",
+      type: "text",
+      required: true,
+      disabledOnEdit: true,
+    },
+    {
+      name: "price",
+      label: "Base Price",
+      type: "text",
+      transform: (val) => (/^\d*$/.test(val) ? val : ""),
+      required: true,
+    },
+    {
+      name: "brand",
+      label: "Brand",
+      type: "select",
+      options: options.brand,
+      required: true,
+    },
+    {
+      name: "size",
+      label: "Size",
+      type: "select",
+      options: options.size,
+      required: true,
+    },
+    {
+      name: "color",
+      label: "Color",
+      type: "select",
+      options: options.color,
+      required: true,
+    },
+    {
+      name: "os",
+      label: "Operating System",
+      type: "select",
+      options: options.os,
+      required: true,
+    },
+    {
+      name: "description",
+      label: "Description",
+      type: "textarea",
+      required: true,
+    },
+  ];
 
   const [formData, setFormData] = useState({
     productName: "",
@@ -62,7 +119,6 @@ export default function ProductForm() {
         )
         .then((res) => {
           const { data } = res.data;
-          console.log(data, "fdefs");
           setFormData({
             productName: data.name,
             sku: data.sku,
@@ -70,7 +126,7 @@ export default function ProductForm() {
             brand: data.brand,
             size: data.specification?.size || "",
             color: data.specification?.color || "",
-            os: data.specification?.os || "",
+            os: data.specification?.["Operating System"] || "",
             description: data.description,
           });
         })
@@ -79,9 +135,6 @@ export default function ProductForm() {
   }, [id, isEditMode]);
 
   console.log("Options:", options);
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
   // ✅ Handle form submit
   const handleSubmit = async (e) => {
@@ -112,7 +165,7 @@ export default function ProductForm() {
       brand: formData.brand,
       category: "MOBILE",
       description: formData.description,
-      basePrice: formData.price,
+      basePrice: Number(formData.price),
       status: "Active",
       specification: {
         color: formData.color,
@@ -142,7 +195,7 @@ export default function ProductForm() {
       navigate("/products");
     } catch (err) {
       console.error("Error saving product ❌:", err);
-      alert("Failed to save product");
+      alert(`Failed to save product: ${err.response.data.message}`);
     }
   };
 
@@ -151,110 +204,15 @@ export default function ProductForm() {
       <div className="serviceOrderListContainer customerListPage">
         <div className="MuiPickTable">
           <div>
-            <form onSubmit={handleSubmit}>
-              <Paper elevation={3} style={{ width: "100%" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    padding: 25,
-                  }}
-                >
-                  <div style={{ width: "45%", margin: 5 }}>
-                    <TextField
-                      fullWidth
-                      required
-                      id="outlined-required"
-                      label="Product Name"
-                      size="small"
-                      value={formData.productName}
-                      onChange={(e) =>
-                        handleChange("productName", e.target.value)
-                      }
-                      disabled={isEditMode}
-                    />
-                  </div>
-                  <div style={{ width: "45%", margin: 5 }}>
-                    <TextField
-                      fullWidth
-                      required
-                      id="outlined-required"
-                      label="SKU Id"
-                      size="small"
-                      value={formData.sku}
-                      onChange={(e) => handleChange("sku", e.target.value)}
-                      disabled={isEditMode}
-                    />
-                  </div>
-                  <div style={{ width: "45%", margin: 5 }}>
-                    <TextField
-                      fullWidth
-                      required
-                      id="outlined-required"
-                      label="Base Price"
-                      size="small"
-                      value={formData.price}
-                      onChange={(e) => {
-                        let value = e.target.value;
-                        if (/^\d*$/.test(value)) {
-                          // ✅ only digits allowed
-                          handleChange("price", value);
-                        }
-                      }}
-                    />
-                  </div>
-                  <SelectField
-                    label="Brand"
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleChange}
-                    options={options.brand}
-                    required
-                  />
-                  <SelectField
-                    label="Size"
-                    name="size"
-                    value={formData.size}
-                    onChange={handleChange}
-                    options={options.size}
-                    required
-                  />
-                  <SelectField
-                    label="Color"
-                    name="color"
-                    value={formData.color}
-                    onChange={handleChange}
-                    options={options.color}
-                    required
-                  />
-                  <SelectField
-                    label="Operating System"
-                    name="os"
-                    value={formData.os}
-                    onChange={handleChange}
-                    options={options.os}
-                    required
-                  />
-                  <div style={{ width: "100%", margin: 5 }}>
-                    <TextareaAutosize
-                      aria-label="empty textarea"
-                      placeholder="Description"
-                      style={{ width: "100%", minHeight: 120 }}
-                      value={formData.description}
-                      onChange={(e) =>
-                        handleChange("description", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" variant="contained" color="primary">
-                    {isEditMode ? "Update Product" : "Create Product"}
-                  </Button>
-                </div>
-              </Paper>
-            </form>
+            <DynamicForm
+              formData={formData}
+              setFormData={setFormData}
+              formConfig={formConfig}
+              isEditMode={isEditMode}
+              handleSubmit={handleSubmit}
+              createButtonText="Create Product"
+              updateButtonText="Update Product"
+            />
           </div>
         </div>
       </div>

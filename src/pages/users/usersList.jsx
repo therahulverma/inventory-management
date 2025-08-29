@@ -6,6 +6,8 @@ import DynamicTable from "../../components/table/dynamicTable";
 import Loading from "../../components/loading/loading";
 import Error from "../../components/error/error";
 import TableTopBar from "../../components/table-top-bar/tableTopBar";
+import { useSelector } from "react-redux";
+import { PERMISSIONS } from "../../utils/constants";
 
 const selectedColumns = {
   firstName: "First Name",
@@ -19,6 +21,9 @@ function Users() {
   const { data, loading, error } = useFetchData(
     `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/users`
   );
+  const rolePermissions = useSelector(
+    (state) => state.roleManagement.rolePermissions
+  );
 
   if (loading) return <Loading />;
   if (error) return <Error />;
@@ -29,9 +34,20 @@ function Users() {
           <div>
             <Paper elevation={3}>
               <TableTopBar totalRecords={data?.data?.length} title="Users" />
-              <div className="jss1275 borderBottomRadius">
-                <DynamicTable data={data.data} columns={selectedColumns} />
-              </div>
+              {rolePermissions?.includes(PERMISSIONS.USERS_VIEW) && (
+                <div className="jss1275 borderBottomRadius">
+                  <DynamicTable
+                    data={data.data}
+                    columns={selectedColumns}
+                    isEdit={
+                      rolePermissions?.includes(PERMISSIONS.USERS_EDIT)
+                        ? true
+                        : false
+                    }
+                    isCheckbox={false}
+                  />
+                </div>
+              )}
             </Paper>
           </div>
         </div>

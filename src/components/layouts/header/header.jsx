@@ -19,17 +19,58 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import { useAuth } from "../../../AuthContext";
 import { Outlet } from "react-router-dom";
+import {
+  setPermissions,
+  setRole,
+} from "../../../redux/slices/roleManagementSlice";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
 
 export default function Header({ onMenuClick }) {
   const [profilePopUp, setProfilePopUp] = React.useState(null);
   const [createUser, setCreateUser] = React.useState(null);
   const [isEmail, setIsEmail] = useState(false);
-  const [role, setRole] = useState("");
   const { logout, decodedToken } = useAuth();
+  const dispatch = useDispatch();
+  const role = useSelector((state) => state.roleManagement.role);
+  console.log("Role:", role);
 
-  const handleChangeRole = (event) => {
-    setRole(event.target.value);
-  };
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (
+          decodedToken?.realm_access?.roles &&
+          decodedToken.realm_access.roles.length > 0 &&
+          !role // only set if not already selected
+        ) {
+          const { data } = await axios.get(
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/role/${decodedToken.realm_access.roles[0]}`
+          );
+
+          const permissions = await axios.get(
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${data?.data?.id}/permissions`
+          );
+
+          const allPermissionKeys = permissions?.data?.data.map(
+            (val) => val.accessKey
+          );
+
+          dispatch(
+            setRole({
+              role: decodedToken.realm_access.roles[0],
+              roleId: data?.data?.id,
+            })
+          );
+
+          dispatch(setPermissions({ allPermissions: allPermissionKeys }));
+        }
+      } catch (err) {
+        alert(err);
+        console.log("error", err);
+      }
+    }
+    fetchData();
+  }, [decodedToken, dispatch, role]);
 
   const handleProfilePopUp = (event) => {
     setProfilePopUp(event.currentTarget);
@@ -39,6 +80,29 @@ export default function Header({ onMenuClick }) {
     setProfilePopUp(null);
   };
 
+  const handleChangeRole = async (e) => {
+    const { data } = await axios.get(
+      `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/role/${e.target.value}`
+    );
+
+    const permissions = await axios.get(
+      `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${data?.data?.id}/permissions`
+    );
+    console.log(permissions?.data?.data, "permissions");
+    const allPermissionKeys = permissions?.data?.data.map(
+      (val) => val.accessKey
+    );
+
+    dispatch(
+      setRole({
+        role: e.target.value,
+        roleId: data?.data?.id,
+      })
+    );
+
+    dispatch(setPermissions({ allPermissions: allPermissionKeys }));
+  };
+
   const handleCreateUser = (event) => {
     setCreateUser(event.currentTarget);
   };
@@ -46,15 +110,6 @@ export default function Header({ onMenuClick }) {
   const handleCloseCreateUser = () => {
     setCreateUser(null);
   };
-
-  useEffect(() => {
-    if (
-      decodedToken?.realm_access?.roles &&
-      decodedToken.realm_access.roles.length > 0
-    ) {
-      setRole(decodedToken.realm_access.roles[0]); // default first item
-    }
-  }, [decodedToken]);
 
   const openProfilePopUP = Boolean(profilePopUp);
   const idProfilePopUP = openProfilePopUP

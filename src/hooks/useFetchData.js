@@ -47,6 +47,7 @@ const useFetchData = (url, options = {}) => {
     };
   }, [url]);
 
+  console.log("FetchData:", data);
   return { data, loading, error };
 };
 

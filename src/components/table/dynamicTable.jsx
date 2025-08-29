@@ -11,6 +11,8 @@ import {
   Popover,
   MenuList,
   MenuItem,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import SortIcon from "@mui/icons-material/Sort";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -30,13 +32,21 @@ const getNestedValue = (obj, path) => {
   }
 };
 
-const DynamicTable = ({ data, columns }) => {
+const DynamicTable = ({
+  data,
+  columns,
+  editRoute,
+  isEdit,
+  isCheckbox,
+  selected,
+  onSelectRow,
+  onSelectAll,
+}) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [anchorEl, setAnchorEl] = useState(null);
   const [openIndex, setOpenIndex] = useState(null);
   const navigate = useNavigate();
-
   const handleClick = (event, idx) => {
     setAnchorEl(event.currentTarget);
     setOpenIndex(idx);
@@ -66,22 +76,36 @@ const DynamicTable = ({ data, columns }) => {
     setPage(0);
   };
 
+  const numSelected = isCheckbox && selected.length;
+  const rowCount = isCheckbox && data.length;
+
   return (
     <>
       <div className="tableWrapper">
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
+              {isCheckbox && (
+                <TableCell>
+                  <Checkbox
+                    indeterminate={numSelected > 0 && numSelected < rowCount}
+                    checked={rowCount > 0 && numSelected === rowCount}
+                    onChange={(e) => onSelectAll(e.target.checked)}
+                  />
+                </TableCell>
+              )}
               {columnEntries.map(([key, label]) => (
                 <TableCell key={key} style={{ fontWeight: "bold" }}>
                   {label}
                 </TableCell>
               ))}
-              <TableCell style={{ fontWeight: "bold" }}>
-                <IconButton>
-                  <SortIcon />
-                </IconButton>
-              </TableCell>
+              {isEdit && (
+                <TableCell style={{ fontWeight: "bold" }}>
+                  <IconButton>
+                    <SortIcon />
+                  </IconButton>
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -89,48 +113,71 @@ const DynamicTable = ({ data, columns }) => {
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, idx) => {
                 const isPopoverOpen = openIndex === idx;
+                const isItemSelected =
+                  isCheckbox &&
+                  selected.some((s) => s.accessKey === row.accessKey);
                 return (
-                  <TableRow key={idx} hover>
+                  <TableRow
+                    key={idx}
+                    hover
+                    role="checkbox"
+                    tabIndex={-1}
+                    selected={isItemSelected}
+                    // onClick={() => isCheckbox && handleSelectRow(row.id)}
+                    sx={{ cursor: "pointer" }}
+                  >
+                    {isCheckbox && (
+                      <TableCell>
+                        <Checkbox
+                          checked={isItemSelected}
+                          onChange={() => onSelectRow(row)}
+                        />
+                      </TableCell>
+                    )}
                     {columnEntries.map(([key]) => (
                       <TableCell key={key}>
                         {getNestedValue(row, key)}
                       </TableCell>
                     ))}
-                    <TableCell>
-                      <IconButton
-                        onClick={(e) => {
-                          handleClick(e, idx);
-                        }}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    </TableCell>
-                    <Popover
-                      open={isPopoverOpen}
-                      anchorEl={anchorEl}
-                      onClose={handleClose}
-                      anchorOrigin={{
-                        vertical: "top",
-                        horizontal: "left",
-                      }}
-                      transformOrigin={{
-                        vertical: "top",
-                        horizontal: "right",
-                      }}
-                    >
-                      <Paper>
-                        <MenuList>
-                          <MenuItem
-                            onClick={() => {
-                              navigate(`/edit/product/${row.id}`);
-                              // handleClose();
+                    {isEdit && (
+                      <>
+                        <TableCell>
+                          <IconButton
+                            onClick={(e) => {
+                              handleClick(e, idx);
                             }}
                           >
-                            <span className="NavItemText">Edit</span>
-                          </MenuItem>
-                        </MenuList>
-                      </Paper>
-                    </Popover>
+                            <MoreVertIcon />
+                          </IconButton>
+                        </TableCell>
+                        <Popover
+                          open={isPopoverOpen}
+                          anchorEl={anchorEl}
+                          onClose={handleClose}
+                          anchorOrigin={{
+                            vertical: "top",
+                            horizontal: "left",
+                          }}
+                          transformOrigin={{
+                            vertical: "top",
+                            horizontal: "right",
+                          }}
+                        >
+                          <Paper>
+                            <MenuList>
+                              <MenuItem
+                                onClick={() => {
+                                  navigate(`${editRoute}${row.id}`);
+                                  // handleClose();
+                                }}
+                              >
+                                <span className="NavItemText">Edit</span>
+                              </MenuItem>
+                            </MenuList>
+                          </Paper>
+                        </Popover>
+                      </>
+                    )}
                   </TableRow>
                 );
               })}

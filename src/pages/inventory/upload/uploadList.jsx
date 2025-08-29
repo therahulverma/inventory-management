@@ -7,19 +7,21 @@ import Loading from "../../../components/loading/loading";
 import Error from "../../../components/error/error";
 import TableTopBar from "../../../components/table-top-bar/tableTopBar";
 import { Button } from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 import { useNavigate } from "react-router-dom";
 import { PERMISSIONS } from "../../../utils/constants";
 import { useSelector } from "react-redux";
 
 const selectedColumns = {
-  name: "Warehouse Name",
-  postalCode: "PIN Code",
-  city: "City",
-  state: "State",
+  name: "File Name",
+  postalCode: "Total Record",
+  city: "Success Record",
+  state: "Error Record",
+  state: "Status",
+  state: "Error Details",
 };
 
-function StockLocationsList() {
+function InventoryUploadList() {
   const navigate = useNavigate();
   const { data, loading, error } = useFetchData(
     `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses`
@@ -28,6 +30,7 @@ function StockLocationsList() {
     (state) => state.roleManagement.rolePermissions
   );
 
+  console.log("data:", data);
   if (loading) return <Loading />;
   if (error) return <Error />;
 
@@ -39,31 +42,30 @@ function StockLocationsList() {
             <Paper elevation={3}>
               <TableTopBar
                 totalRecords={data?.data?.length}
-                title="Stock Locations"
+                title="Inventory Upload"
                 CustomComponent={() =>
-                  rolePermissions?.includes(PERMISSIONS.LOCATIONS_CREATE) && (
+                  rolePermissions?.includes(PERMISSIONS.UPLOAD_CREATE) && (
                     <Button
                       variant="contained"
                       size="small"
-                      startIcon={<AddCircleOutlineIcon />}
+                      startIcon={<FileUploadIcon />}
                       onClick={() => {
-                        navigate("/stock/create/location");
+                        navigate("/inventory/upload");
                       }}
                     >
-                      Create Stock Location
+                      Upload Inventory
                     </Button>
                   )
                 }
               />
-              {rolePermissions?.includes(PERMISSIONS.LOCATIONS_VIEW) && (
+              {rolePermissions?.includes(PERMISSIONS.UPLOAD_VIEW) && (
                 <div className="jss1275 borderBottomRadius">
                   <DynamicTable
                     data={data.data}
                     columns={selectedColumns}
                     isEdit={
-                      rolePermissions?.includes(PERMISSIONS.LOCATIONS_VIEW)
-                        ? true
-                        : false
+                      rolePermissions?.includes(PERMISSIONS.UPLOAD_EDIT) &&
+                      false
                     }
                     isCheckbox={false}
                   />
@@ -77,4 +79,4 @@ function StockLocationsList() {
   );
 }
 
-export default React.memo(StockLocationsList);
+export default React.memo(InventoryUploadList);

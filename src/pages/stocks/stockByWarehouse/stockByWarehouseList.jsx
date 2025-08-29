@@ -6,7 +6,13 @@ import DynamicTable from "../../../components/table/dynamicTable";
 import Loading from "../../../components/loading/loading";
 import Error from "../../../components/error/error";
 import TableTopBar from "../../../components/table-top-bar/tableTopBar";
-import { Button } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useNavigate } from "react-router-dom";
 import { PERMISSIONS } from "../../../utils/constants";
@@ -19,7 +25,7 @@ const selectedColumns = {
   state: "State",
 };
 
-function StockLocationsList() {
+function StockByWarehouseList() {
   const navigate = useNavigate();
   const { data, loading, error } = useFetchData(
     `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses`
@@ -37,24 +43,48 @@ function StockLocationsList() {
         <div className="MuiPickTable">
           <div>
             <Paper elevation={3}>
-              <TableTopBar
-                totalRecords={data?.data?.length}
-                title="Stock Locations"
-                CustomComponent={() =>
-                  rolePermissions?.includes(PERMISSIONS.LOCATIONS_CREATE) && (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<AddCircleOutlineIcon />}
-                      onClick={() => {
-                        navigate("/stock/create/location");
-                      }}
+              <TableTopBar title="Stock by warehouse" />
+              <div
+                style={{
+                  width: "100%",
+                  padding: 20,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  gap: 10,
+                }}
+              >
+                <div>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id={`warehouse-label`}>Warehouse</InputLabel>
+                    <Select
+                      labelId={`warehouse-label`}
+                      id="Warehouse"
+                      //   value={value || ""}
+                      label="Warehouse"
+                      //   onChange={(e) => onChange(name, e.target.value)}
+                      //   disabled={disabled}
                     >
-                      Create Stock Location
-                    </Button>
-                  )
-                }
-              />
+                      {/* {options.map((opt) => (
+                        <MenuItem key={opt.id.toString()} value={opt.value}>
+                          {opt.value}
+                        </MenuItem>
+                      ))} */}
+                    </Select>
+                  </FormControl>
+                </div>
+                <div
+                  style={{ display: "flex", gap: 10, justifyContent: "center" }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    // onClick={submitFile}
+                  >
+                    Search
+                  </Button>
+                </div>
+              </div>
               {rolePermissions?.includes(PERMISSIONS.LOCATIONS_VIEW) && (
                 <div className="jss1275 borderBottomRadius">
                   <DynamicTable
@@ -77,4 +107,4 @@ function StockLocationsList() {
   );
 }
 
-export default React.memo(StockLocationsList);
+export default React.memo(StockByWarehouseList);
