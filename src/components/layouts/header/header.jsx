@@ -18,7 +18,7 @@ import MenuItem from "@mui/material/MenuItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import { useAuth } from "../../../AuthContext";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import {
   setPermissions,
   setRole,
@@ -31,10 +31,11 @@ export default function Header({ onMenuClick }) {
   const [createUser, setCreateUser] = React.useState(null);
   const [isEmail, setIsEmail] = useState(false);
   const { logout, decodedToken } = useAuth();
-  const dispatch = useDispatch();
+
   const role = useSelector((state) => state.roleManagement.role);
   console.log("Role:", role);
-
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   useEffect(() => {
     async function fetchData() {
       try {
@@ -101,6 +102,7 @@ export default function Header({ onMenuClick }) {
     );
 
     dispatch(setPermissions({ allPermissions: allPermissionKeys }));
+    navigate("/");
   };
 
   const handleCreateUser = (event) => {

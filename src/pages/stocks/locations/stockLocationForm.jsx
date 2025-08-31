@@ -2,7 +2,16 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import SelectField from "../../../components/select/select";
-import { Button, Paper, TextField } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+} from "@mui/material";
+import DynamicForm from "../../../components/form/form";
 
 // const apiEndpoints = {
 //   brand: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Brands`,
@@ -11,123 +20,263 @@ import { Button, Paper, TextField } from "@mui/material";
 //   os: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Operating%20System`,
 // };
 
-// Cities
-const cities = [
-  { id: 1, name: "City", value: "Delhi", description: "", isActive: "Y" },
-  { id: 2, name: "City", value: "Mumbai", description: "", isActive: "Y" },
-  { id: 3, name: "City", value: "Bengaluru", description: "", isActive: "Y" },
-  { id: 4, name: "City", value: "Chennai", description: "", isActive: "Y" },
-  { id: 5, name: "City", value: "Kolkata", description: "", isActive: "Y" },
-];
-
-// States
-const states = [
-  {
-    id: 6,
-    name: "State",
-    value: "Maharashtra",
-    description: "",
-    isActive: "Y",
-  },
-  { id: 7, name: "State", value: "Karnataka", description: "", isActive: "Y" },
-  { id: 8, name: "State", value: "Tamil Nadu", description: "", isActive: "Y" },
-  {
-    id: 9,
-    name: "State",
-    value: "Uttar Pradesh",
-    description: "",
-    isActive: "Y",
-  },
-  {
-    id: 10,
-    name: "State",
-    value: "West Bengal",
-    description: "",
-    isActive: "Y",
-  },
-];
-
-// Suppliers
-const suppliers = [
-  {
-    id: 11,
-    name: "Supplier",
-    value: "Reliance Retail",
-    description: "",
-    isActive: "Y",
-  },
-  {
-    id: 12,
-    name: "Supplier",
-    value: "Tata Trent",
-    description: "",
-    isActive: "Y",
-  },
-  {
-    id: 13,
-    name: "Supplier",
-    value: "Future Group",
-    description: "",
-    isActive: "Y",
-  },
-  {
-    id: 14,
-    name: "Supplier",
-    value: "Aditya Birla Retail",
-    description: "",
-    isActive: "Y",
-  },
-  { id: 15, name: "Supplier", value: "DMart", description: "", isActive: "Y" },
-];
-
 function StockLocationForm() {
   const navigate = useNavigate();
   const { id } = useParams(); // ✅ get productId from route (for edit)
   const isEditMode = Boolean(id);
-  const [options, setOptions] = useState({
-    city: [],
-    state: [],
-    supplier: [],
-  });
-
-  //   {
-  //     name: "",
-  //     address: "",
-  //     city: "",
-  //     state: "",
-  //     country: "India",
-  //     postalCode: "",
-  //     capacity: 0,
-  //     phone: "",
-  //     email: "",
-  //     isActive: true,
-  //   }
-
+  const [suppliers, setSuppliers] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [states, setStates] = useState([]);
+  const [supplierID, setSupplierID] = useState(null);
+  const [countryCode, setCountryCode] = useState(null);
+  const [stateCode, setStateCode] = useState(null);
+  const [cityCode, setCityCode] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     address: "",
     supplier: "",
-    gst: "",
+    // gst: "",
+    country: "",
     city: "",
     state: "",
     postalCode: "",
   });
 
+  const handleCountry = async (e) => {
+    setCountryCode(e.target.value);
+  };
+
+  const handleSupplier = async (e) => {
+    setSupplierID(e.target.value);
+    setFormData({ ...formData, supplier: e.target.value });
+  };
+  const handleState = async (e) => {
+    setStateCode(e.target.value);
+  };
+
+  const handleCity = async (e) => {
+    setCityCode(e.target.value);
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${countryCode}`
+        );
+
+        setStates(data?.data);
+        setFormData({ ...formData, country: countryCode });
+      } catch (err) {
+        alert("Error:", err);
+        console.log("Error:", err);
+      }
+    }
+    countryCode && fetchData();
+  }, [countryCode]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${stateCode}`
+        );
+
+        setCities(data?.data);
+        setFormData({ ...formData, state: stateCode });
+      } catch (err) {
+        alert("Error:", err);
+        console.log("Error:", err);
+      }
+    }
+    stateCode && fetchData();
+  }, [stateCode]);
+
+  useEffect(() => {
+    setFormData({ ...formData, city: cityCode });
+  }, [cityCode]);
+
+  const formConfig = [
+    {
+      name: "name",
+      label: "Warehouse Name",
+      type: "text",
+      required: true,
+      transform: (val) => val.trim(),
+      validate: (val) => (val ? null : "Warehouse name is required"),
+    },
+
+    // {
+    //   name: "gst",
+    //   label: "GST Number",
+    //   type: "text",
+    //   required: true,
+    //   transform: (val) => val.toUpperCase().trim(),
+    //   validate: (val) =>
+    //     /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(val)
+    //       ? null
+    //       : "Invalid GSTIN (e.g., 27ABCDE1234F1Z5)",
+    //   maxLength: 15,
+    // },
+    {
+      name: "supplier",
+      label: "Supplier",
+      type: "custom-component",
+      required: true,
+      options: suppliers,
+      CustomComponent: () => (
+        <div>
+          <FormControl fullWidth size="small" required={true}>
+            <InputLabel id={`supplier-label`} required={true}>
+              Supplier
+            </InputLabel>
+            <Select
+              labelId={`supplier-label`}
+              id="Supplier"
+              value={supplierID}
+              label="Supplier"
+              onChange={handleSupplier}
+              disabled={false}
+            >
+              {suppliers.map((opt) => (
+                <MenuItem key={opt.id.toString()} value={opt.id}>
+                  {opt.companyName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+      ),
+    },
+    {
+      name: "country",
+      label: "Country",
+      type: "custom-component",
+      options: countries,
+      required: true,
+      CustomComponent: () => (
+        <div>
+          <FormControl fullWidth size="small" required={true}>
+            <InputLabel id={`country-label`} required={true}>
+              Country
+            </InputLabel>
+            <Select
+              labelId={`country-label`}
+              id="Country"
+              value={countryCode || ""}
+              label="Country"
+              onChange={handleCountry}
+              disabled={false}
+            >
+              {countries.map((opt) => (
+                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                  {opt.value}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+      ),
+    },
+    {
+      name: "state",
+      label: "State",
+      type: "custom-component",
+      options: states,
+      required: true,
+      CustomComponent: () => (
+        <div>
+          <FormControl fullWidth size="small" required={true}>
+            <InputLabel id={`state-label`} required={true}>
+              State
+            </InputLabel>
+            <Select
+              labelId={`state-label`}
+              id="State"
+              value={stateCode || ""}
+              label="State"
+              onChange={handleState}
+              disabled={false}
+            >
+              {states.map((opt) => (
+                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                  {opt.value}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+      ),
+    },
+    {
+      name: "city",
+      label: "City",
+      type: "custom-component",
+      options: cities,
+      required: true,
+      CustomComponent: () => (
+        <div>
+          <FormControl fullWidth size="small" required={true}>
+            <InputLabel id={`city-label`} required={true}>
+              City
+            </InputLabel>
+            <Select
+              labelId={`city-label`}
+              id="City"
+              value={cityCode || ""}
+              label="City"
+              onChange={handleCity}
+              disabled={false}
+            >
+              {cities.map((opt) => (
+                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                  {opt.value}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+      ),
+    },
+    {
+      name: "postalCode",
+      label: "Pin Code",
+      type: "text",
+      required: true,
+      transform: (val) => val.trim(),
+      validate: (val) =>
+        /^\d{6}$/.test(val) ? null : "Invalid Pin Code (must be 6 digits)",
+    },
+    {
+      name: "address",
+      label: "Address",
+      type: "text",
+      required: true,
+      transform: (val) => val.trim(),
+      validate: (val) => (val ? null : "Address is required"),
+    },
+  ];
+
+  console.log(formData, "forrm data");
+
   useEffect(() => {
     (async () => {
       try {
-        // const [brand, size, color, os] = await Promise.all([
-        //   axios.get(apiEndpoints.brand),
-        //   axios.get(apiEndpoints.size),
-        //   axios.get(apiEndpoints.color),
-        //   axios.get(apiEndpoints.os),
-        // ]);
-
-        setOptions({
-          city: cities || [],
-          state: states || [],
-          supplier: suppliers || [],
-        });
+        // const country = await axios.get(
+        //   `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`
+        // );
+        // setCountries(country?.data?.data);
+        const [country, supplier] = await Promise.all([
+          axios.get(
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`
+          ),
+          axios.get(
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/suppliers/names`
+          ),
+        ]);
+        setCountries(country?.data?.data);
+        setSuppliers(supplier?.data?.data);
       } catch (error) {
         console.error("Error fetching options", error);
       }
@@ -142,23 +291,23 @@ function StockLocationForm() {
           const { data } = res.data;
           console.log("Updated Form Data:", data);
           setFormData({
-            productName: data.name,
-            sku: data.sku,
-            price: data.basePrice,
-            brand: data.brand,
-            size: data.specification?.size || "",
-            color: data.specification?.color || "",
-            os: data.specification?.os || "",
-            description: data.description,
+            name: data.name,
+            address: data.address,
+            supplier: data.supplierId,
+            // gst: data.name,
+            country: data.country,
+            city: data.city,
+            state: data.state,
+            postalCode: data.postalCode,
           });
+          setCountryCode(data.country);
+          setStateCode(data.state);
+          setCityCode(data.city);
+          setSupplierID(data.supplierId);
         })
         .catch((err) => console.error("Error fetching location:", err));
     }
   }, [id, isEditMode]);
-
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -167,7 +316,8 @@ function StockLocationForm() {
       "name",
       "address",
       "supplier",
-      "gst",
+      // "gst",
+      "country",
       "city",
       "state",
       "postalCode",
@@ -187,12 +337,13 @@ function StockLocationForm() {
       address: formData.address,
       city: formData.city,
       state: formData.state,
-      country: "India",
+      country: formData.country,
       postalCode: formData.postalCode,
-      capacity: 0,
+      capacity: 500,
       phone: "1234",
       email: "abc@gmailcom",
       isActive: true,
+      supplierId: formData.supplier,
     };
 
     try {
@@ -202,7 +353,7 @@ function StockLocationForm() {
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses/${id}`,
           payload
         );
-        alert("Location updated successfully!");
+        alert("Warehouse updated successfully!");
         console.log("Updated ✅:", res.data);
       } else {
         // ✅ POST API for create
@@ -210,7 +361,7 @@ function StockLocationForm() {
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses`,
           payload
         );
-        alert("Location created successfully!");
+        alert("Warehouse created successfully!");
         console.log("Created ✅:", res.data);
       }
       navigate("/stock/locations");
@@ -225,104 +376,15 @@ function StockLocationForm() {
       <div className="serviceOrderListContainer customerListPage">
         <div className="MuiPickTable">
           <div>
-            <form onSubmit={handleSubmit}>
-              <Paper elevation={3} style={{ width: "100%" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    padding: 25,
-                  }}
-                >
-                  <div style={{ width: "45%", margin: 5 }}>
-                    <TextField
-                      fullWidth
-                      required
-                      id="outlined-required"
-                      label="Warehouse Name"
-                      size="small"
-                      value={formData.name}
-                      onChange={(e) => handleChange("name", e.target.value)}
-                      disabled={isEditMode}
-                    />
-                  </div>
-                  <div style={{ width: "45%", margin: 5 }}>
-                    <TextField
-                      fullWidth
-                      required
-                      id="outlined-required"
-                      label="Address"
-                      size="small"
-                      value={formData.address}
-                      onChange={(e) => handleChange("address", e.target.value)}
-                      disabled={isEditMode}
-                    />
-                  </div>
-                  <div style={{ width: "45%", margin: 5 }}>
-                    <TextField
-                      fullWidth
-                      required
-                      id="outlined-required"
-                      label="GST Number"
-                      size="small"
-                      value={formData.gst}
-                      onChange={(e) => {
-                        let value = e.target.value.toUpperCase();
-                        if (/^[0-9A-Z]*$/.test(value)) {
-                          // ✅ Limit max length to 15 characters
-                          if (value.length <= 15) {
-                            handleChange("gst", value);
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                  <SelectField
-                    label="Supplier"
-                    name="supplier"
-                    value={formData.supplier}
-                    onChange={handleChange}
-                    options={options.supplier}
-                    required
-                  />
-                  <SelectField
-                    label="City"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    options={options.city}
-                    required
-                  />
-                  <SelectField
-                    label="State"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                    options={options.state}
-                    required
-                  />
-                  <div style={{ width: "45%", margin: 5 }}>
-                    <TextField
-                      fullWidth
-                      required
-                      id="outlined-required"
-                      label="Pin Code"
-                      size="small"
-                      value={formData.postalCode}
-                      onChange={(e) =>
-                        handleChange("postalCode", e.target.value)
-                      }
-                      disabled={isEditMode}
-                    />
-                  </div>
-
-                  <Button type="submit" variant="contained" color="primary">
-                    {isEditMode ? "Update Location" : "Create Location"}
-                  </Button>
-                </div>
-              </Paper>
-            </form>
+            <DynamicForm
+              formData={formData}
+              setFormData={setFormData}
+              formConfig={formConfig}
+              isEditMode={isEditMode}
+              handleSubmit={handleSubmit}
+              createButtonText="Create Warehouse"
+              updateButtonText="Update Warehouse"
+            />
           </div>
         </div>
       </div>

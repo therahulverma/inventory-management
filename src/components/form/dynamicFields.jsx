@@ -3,7 +3,15 @@ import SelectField from "../../components/select/select";
 import { SELECT_TYPE } from "../../utils/constants";
 
 function DynamicField({ field, value, onChange, isEditMode, onBlur }) {
-  const { name, label, type, required, disabledOnEdit, options } = field;
+  const {
+    name,
+    label,
+    type,
+    required,
+    disabledOnEdit,
+    options,
+    CustomComponent,
+  } = field;
 
   switch (type) {
     case "text":
@@ -20,7 +28,6 @@ function DynamicField({ field, value, onChange, isEditMode, onBlur }) {
           onChange={(e) => onChange(name, e.target.value)}
           onBlur={(e) => onBlur(name, e.target.value)}
           disabled={disabledOnEdit && isEditMode}
-          style={{ width: "45%", margin: 5 }}
         />
       );
 
@@ -37,24 +44,11 @@ function DynamicField({ field, value, onChange, isEditMode, onBlur }) {
           type={SELECT_TYPE.SELECT_NORMAL}
         />
       );
-
-    case "select-country":
-      return (
-        <SelectField
-          key={name}
-          label={label}
-          name={name}
-          value={value}
-          onChange={onChange}
-          options={options || []}
-          required={required}
-          type={SELECT_TYPE.SELECT_COUNTRY}
-        />
-      );
-
+    case "custom-component":
+      return <CustomComponent />;
     case "textarea":
       return (
-        <div key={name} style={{ width: "100%", margin: 5 }}>
+        <div key={name}>
           <TextareaAutosize
             aria-label={label}
             placeholder={label}

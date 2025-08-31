@@ -79,24 +79,24 @@ const initialNavItems = [
     path: null,
     permissionKey: PERMISSIONS.INVENTORY_MENU,
     children: [
-      {
-        label: "Inventory Transfer",
-        path: "/inventory/transfer",
-        status: false,
-        permissionKey: PERMISSIONS.INVENTORY_TRANSFER_MENU,
-      },
+      // {
+      //   label: "Inventory Transfer",
+      //   path: "/inventory/transfer",
+      //   status: false,
+      //   permissionKey: PERMISSIONS.INVENTORY_TRANSFER_MENU,
+      // },
       {
         label: "Inventory Upload",
         path: "/inventory/upload-list",
         status: false,
         permissionKey: PERMISSIONS.INVENTORY_UPLOAD_MENU,
       },
-      {
-        label: "Inventory Search",
-        path: "/inventory/search",
-        status: false,
-        permissionKey: PERMISSIONS.INVENTORY_SEARCH_MENU,
-      },
+      // {
+      //   label: "Inventory Search",
+      //   path: "/inventory/search",
+      //   status: false,
+      //   permissionKey: PERMISSIONS.INVENTORY_SEARCH_MENU,
+      // },
     ],
   },
   {
@@ -150,7 +150,7 @@ const initialNavItems = [
   },
 ];
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose, setSidebarOpen }) {
   const [navItems, setNavItems] = useState(initialNavItems);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -192,11 +192,14 @@ export default function Sidebar({ isOpen, onClose }) {
     <div className={`left-panel ${isOpen ? "" : "collapsed"}`}>
       <div className="HeaderLogo">
         <div className="MuiButtonBase-root MuiIconButton-root HeaderIcon">
-          <img src="/images/logo.svg" alt="logo" />
+          <img src={`${process.env.PUBLIC_URL}/images/logo.svg`} alt="logo" />
         </div>
 
         <div className="HeaderImage">
-          <img src="/images/logoTitle.svg" alt="Stock Management" />
+          <img
+            src={`${process.env.PUBLIC_URL}/images/logoTitle.svg`}
+            alt="Stock Management"
+          />
         </div>
 
         <IconButton

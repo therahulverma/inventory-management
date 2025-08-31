@@ -3,18 +3,26 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import DynamicForm from "../../components/form/form";
+import { TextField } from "@mui/material";
 
 const apiEndpoints = {
-  brand: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Brands`,
-  size: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Size`,
-  color: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/color`,
-  os: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Operating%20System`,
+  brand: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/Brand`,
+  size: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/size`,
+  color: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/color`,
+  os: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/os`,
 };
 
 export default function ProductForm() {
   const navigate = useNavigate();
   const { id } = useParams(); // ✅ get productId from route (for edit)
   const isEditMode = Boolean(id);
+  const [files, setFiles] = useState([]);
+
+  const handleFile = (event) => {
+    const selectedFiles = Array.from(event.target.files); // convert FileList → Array
+    console.log(selectedFiles);
+    setFiles(selectedFiles); // store all files
+  };
   const [options, setOptions] = useState({
     brand: [],
     size: [],
@@ -73,9 +81,31 @@ export default function ProductForm() {
       required: true,
     },
     {
+      name: "images",
+      label: "Upload Images",
+      type: "custom-component",
+      required: true,
+      CustomComponent: () => (
+        <div>
+          <TextField
+            type="file"
+            id="images"
+            // label="Outlined"
+            variant="outlined"
+            onChange={handleFile}
+            size="small"
+            inputProps={{
+              accept: "image/*", // ✅ only image files (jpg, png, gif, etc.)
+              multiple: true, // ✅ allow multiple selection
+            }}
+          />
+        </div>
+      ),
+    },
+    {
       name: "description",
       label: "Description",
-      type: "textarea",
+      type: "text",
       required: true,
     },
   ];
@@ -166,7 +196,6 @@ export default function ProductForm() {
       category: "MOBILE",
       description: formData.description,
       basePrice: Number(formData.price),
-      status: "Active",
       specification: {
         color: formData.color,
         size: formData.size,
@@ -174,21 +203,46 @@ export default function ProductForm() {
       },
     };
 
+    const formDataToSend = new FormData();
+
+    formDataToSend.append("product", JSON.stringify(payload));
+    if (files?.length) {
+      files.forEach((file, index) => {
+        formDataToSend.append(`files`, file);
+      });
+    }
+
+    console.log(formDataToSend, "Payload");
+
     try {
       if (isEditMode) {
         // ✅ PUT API for update
         const res = await axios.put(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_PRODUCT_API_PORT}/api/v1/products/${id}`,
-          payload
+          formDataToSend,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
         alert("Product updated successfully!");
         console.log("Updated ✅:", res.data);
       } else {
-        // ✅ POST API for create
         const res = await axios.post(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_PRODUCT_API_PORT}/api/v1/products`,
-          payload
+          formDataToSend
         );
+
+        // const res = await axios.post(
+        //   `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_PRODUCT_API_PORT}/api/v1/products`,
+        //   formDataToSend,
+        //   {
+        //     headers: {
+        //       "Content-Type": "multipart/form-data",
+        //     },
+        //   }
+        // );
         alert("Product created successfully!");
         console.log("Created ✅:", res.data);
       }

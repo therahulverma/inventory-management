@@ -14,7 +14,7 @@ import { PERMISSIONS } from "../../utils/constants";
 
 const selectedColumns = {
   companyName: "Partner Name",
-  contactPerson: "Contact Person",
+  gstin: "GSTIN",
   email: "Email Address",
   phone: "Phone",
 };

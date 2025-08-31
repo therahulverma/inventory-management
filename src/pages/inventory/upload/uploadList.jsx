@@ -13,18 +13,18 @@ import { PERMISSIONS } from "../../../utils/constants";
 import { useSelector } from "react-redux";
 
 const selectedColumns = {
-  name: "File Name",
-  postalCode: "Total Record",
-  city: "Success Record",
-  state: "Error Record",
-  state: "Status",
-  state: "Error Details",
+  fileName: "File Name",
+  totalRecords: "Total Record",
+  successRecords: "Success Record",
+  failureRecords: "Error Record",
+  status: "Status",
+  errorDetails: "Error Details",
 };
 
 function InventoryUploadList() {
   const navigate = useNavigate();
   const { data, loading, error } = useFetchData(
-    `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses`
+    `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/inventory/upload/history`
   );
   const rolePermissions = useSelector(
     (state) => state.roleManagement.rolePermissions

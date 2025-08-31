@@ -54,7 +54,10 @@ root.render(
                 }
               >
                 {/* Inventory Section */}
-                <Route index element={<Users />} />
+                <Route
+                  index
+                  element={<Dummy text="Dashboard will be coming soon..." />}
+                />
 
                 <Route path="inventory">
                   <Route
@@ -130,7 +133,7 @@ root.render(
                     element={<StockLocationForm mode="create" />}
                   />
                   <Route
-                    path="edit/location/:id"
+                    path="edit/:id"
                     element={<StockLocationForm mode="edit" />}
                   />
                   <Route path="items" element={<StockItemsList />} />

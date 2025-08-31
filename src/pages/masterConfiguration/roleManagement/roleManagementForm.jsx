@@ -76,7 +76,7 @@ function RoleManagementForm() {
       if (res && role_Id == id) {
         dispatch(setPermissions({ allPermissions: allPermissionKeys }));
       }
-      alert("Saved successfully!");
+      alert("Privilege Saved successfully!");
       console.log("Created ✅:", res.data);
 
       navigate("/role/role-management");

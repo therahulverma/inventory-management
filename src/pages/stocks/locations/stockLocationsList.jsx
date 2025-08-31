@@ -13,6 +13,7 @@ import { PERMISSIONS } from "../../../utils/constants";
 import { useSelector } from "react-redux";
 
 const selectedColumns = {
+  id: "Warehouse ID",
   name: "Warehouse Name",
   postalCode: "PIN Code",
   city: "City",
@@ -60,8 +61,9 @@ function StockLocationsList() {
                   <DynamicTable
                     data={data.data}
                     columns={selectedColumns}
+                    editRoute="/stock/edit/"
                     isEdit={
-                      rolePermissions?.includes(PERMISSIONS.LOCATIONS_VIEW)
+                      rolePermissions?.includes(PERMISSIONS.LOCATIONS_EDIT)
                         ? true
                         : false
                     }

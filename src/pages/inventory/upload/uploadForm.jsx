@@ -34,8 +34,7 @@ function InventoryUploadForm() {
       );
       alert("File uploaded successfully!");
       console.log("Created ✅:", res.data);
-
-      //   navigate("/partners");
+      navigate("/inventory/upload-list");
     } catch (err) {
       console.error("Error saving product ❌:", err);
       alert(`Failed to save product: ${err.response.data.message}`);

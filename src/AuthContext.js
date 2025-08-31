@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
           onLoad: "login-required",
           checkLoginIframe: false,
           pkceMethod: "S256",
+          redirectUri: window.location.origin + "/sms_ui/",
         });
 
         setAuthenticated(isAuth);

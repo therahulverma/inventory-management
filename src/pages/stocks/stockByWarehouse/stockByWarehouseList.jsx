@@ -72,7 +72,7 @@ function StockByWarehouseList() {
                 }}
               >
                 <div>
-                  <FormControl fullWidth size="small">
+                  <FormControl sx={{ width: "25%" }} size="small">
                     <InputLabel id={`warehouse-label`}>Warehouse</InputLabel>
                     <Select
                       labelId={`warehouse-label`}

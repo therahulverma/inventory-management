@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import DynamicForm from "../../components/form/form";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 function PartnerForm() {
   const navigate = useNavigate();
@@ -12,16 +13,59 @@ function PartnerForm() {
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [states, setStates] = useState([]);
-  const [countryCode, setCountryCode] = useState("");
-  const [stateCode, setStateCode] = useState("");
-  const [cityCode, setCityCode] = useState("");
+  const [countryCode, setCountryCode] = useState(null);
+  const [stateCode, setStateCode] = useState(null);
+  const [cityCode, setCityCode] = useState(null);
 
-  //   const [options, setOptions] = useState({
-  //     brand: [],
-  //     size: [],
-  //     color: [],
-  //     os: [],
-  //   });
+  const handleCountry = async (e) => {
+    setCountryCode(e.target.value);
+  };
+
+  const handleState = async (e) => {
+    setStateCode(e.target.value);
+  };
+
+  const handleCity = async (e) => {
+    setCityCode(e.target.value);
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${countryCode}`
+        );
+
+        setStates(data?.data);
+        setFormData({ ...formData, country: countryCode });
+      } catch (err) {
+        alert("Error:", err);
+        console.log("Error:", err);
+      }
+    }
+    countryCode && fetchData();
+  }, [countryCode]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${stateCode}`
+        );
+
+        setCities(data?.data);
+        setFormData({ ...formData, state: stateCode });
+      } catch (err) {
+        alert("Error:", err);
+        console.log("Error:", err);
+      }
+    }
+    stateCode && fetchData();
+  }, [stateCode]);
+
+  useEffect(() => {
+    setFormData({ ...formData, city: cityCode });
+  }, [cityCode]);
 
   const formConfig = [
     {
@@ -57,29 +101,98 @@ function PartnerForm() {
       validate: (val) =>
         /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(val)
           ? null
-          : "Invalid GSTIN",
+          : "Invalid GSTIN (e.g., 27ABCDE1234F1Z5)",
       required: true,
     },
     {
       name: "country",
       label: "Country",
-      type: "select",
+      type: "custom-component",
       options: countries,
       required: true,
+      CustomComponent: () => (
+        <div>
+          <FormControl fullWidth size="small" required={true}>
+            <InputLabel id={`country-label`} required={true}>
+              Country
+            </InputLabel>
+            <Select
+              labelId={`country-label`}
+              id="Country"
+              value={countryCode || ""}
+              label="Country"
+              onChange={handleCountry}
+              disabled={false}
+            >
+              {countries.map((opt) => (
+                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                  {opt.value}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+      ),
     },
     {
       name: "state",
       label: "State",
-      type: "select",
+      type: "custom-component",
       options: states,
       required: true,
+      CustomComponent: () => (
+        <div>
+          <FormControl fullWidth size="small" required={true}>
+            <InputLabel id={`state-label`} required={true}>
+              State
+            </InputLabel>
+            <Select
+              labelId={`state-label`}
+              id="State"
+              value={stateCode || ""}
+              label="State"
+              onChange={handleState}
+              disabled={false}
+            >
+              {states.map((opt) => (
+                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                  {opt.value}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+      ),
     },
     {
       name: "city",
       label: "City",
-      type: "select",
+      type: "custom-component",
       options: cities,
       required: true,
+      CustomComponent: () => (
+        <div>
+          <FormControl fullWidth size="small" required={true}>
+            <InputLabel id={`city-label`} required={true}>
+              City
+            </InputLabel>
+            <Select
+              labelId={`city-label`}
+              id="City"
+              value={cityCode || ""}
+              label="City"
+              onChange={handleCity}
+              disabled={false}
+            >
+              {cities.map((opt) => (
+                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                  {opt.value}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+      ),
     },
     {
       name: "postalCode",
@@ -92,7 +205,7 @@ function PartnerForm() {
     {
       name: "address",
       label: "Address",
-      type: "textarea",
+      type: "text",
       required: true,
     },
   ];
@@ -152,6 +265,9 @@ function PartnerForm() {
             state: data.state,
             postalCode: data.postalCode,
           });
+          setCountryCode(data.country);
+          setStateCode(data.state);
+          setCityCode(data.city);
         })
         .catch((err) => console.error("Error fetching product:", err));
     }
@@ -190,6 +306,7 @@ function PartnerForm() {
       phone: formData.phone,
       gstin: formData.gstin,
       address: formData.address,
+      country: formData.country,
       city: formData.city,
       state: formData.state,
       postalCode: formData.postalCode,

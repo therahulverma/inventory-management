@@ -1,6 +1,7 @@
 import { Button, Paper } from "@mui/material";
 import DynamicField from "./dynamicFields";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 function DynamicForm({
   formConfig,
@@ -12,6 +13,7 @@ function DynamicForm({
   updateButtonText,
 }) {
   const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
   const handleChange = (field, value) => {
     const config = formConfig.find((f) => f.name === field);
 
@@ -32,8 +34,11 @@ function DynamicForm({
       const error = config.validate(value);
 
       if (error) {
-        alert(error);
-        finalValue = "";
+        // alert(error); // show error once
+        finalValue = ""; // clear value
+        setErrors((prev) => ({ ...prev, [field]: error }));
+      } else {
+        setErrors((prev) => ({ ...prev, [field]: null }));
       }
     }
 
@@ -52,14 +57,33 @@ function DynamicForm({
           }}
         >
           {formConfig.map((field) => (
-            <DynamicField
-              key={field?.name}
-              field={field}
-              value={formData[field.name]}
-              onChange={handleChange}
-              isEditMode={isEditMode}
-              onBlur={validateField}
-            />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                width: "45%",
+                margin: 5,
+              }}
+            >
+              <DynamicField
+                key={field?.name}
+                field={field}
+                value={formData[field.name]}
+                onChange={handleChange}
+                isEditMode={isEditMode}
+                onBlur={validateField}
+              />
+              <span
+                style={{
+                  color: "red",
+                  minHeight: "0.8rem",
+                  fontSize: "0.8rem",
+                  display: "block",
+                }}
+              >
+                {errors[field?.name] || ""}
+              </span>
+            </div>
           ))}
           <div
             style={{
