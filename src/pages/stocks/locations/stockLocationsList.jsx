@@ -15,9 +15,11 @@ import { useSelector } from "react-redux";
 const selectedColumns = {
   id: "Warehouse ID",
   name: "Warehouse Name",
+  capacity: "Capacity",
   postalCode: "PIN Code",
-  city: "City",
-  state: "State",
+
+  // city: "City",
+  // state: "State",
 };
 
 function StockLocationsList() {

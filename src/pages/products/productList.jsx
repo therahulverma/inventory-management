@@ -25,7 +25,7 @@ const selectedColumns = {
 function Products() {
   const navigate = useNavigate();
   const { data, loading, error } = useFetchData(
-    `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_PRODUCT_API_PORT}/api/v1/products?page=0&sizePerPage=10`
+    `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_PRODUCT_API_PORT}/api/v1/products`
   );
 
   const rolePermissions = useSelector(

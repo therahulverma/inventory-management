@@ -80,28 +80,28 @@ export default function ProductForm() {
       options: options.os,
       required: true,
     },
-    {
-      name: "images",
-      label: "Upload Images",
-      type: "custom-component",
-      required: true,
-      CustomComponent: () => (
-        <div>
-          <TextField
-            type="file"
-            id="images"
-            // label="Outlined"
-            variant="outlined"
-            onChange={handleFile}
-            size="small"
-            inputProps={{
-              accept: "image/*", // ✅ only image files (jpg, png, gif, etc.)
-              multiple: true, // ✅ allow multiple selection
-            }}
-          />
-        </div>
-      ),
-    },
+    // {
+    //   name: "images",
+    //   label: "Upload Images",
+    //   type: "custom-component",
+    //   required: true,
+    //   CustomComponent: () => (
+    //     <div>
+    //       <TextField
+    //         type="file"
+    //         id="images"
+    //         // label="Outlined"
+    //         variant="outlined"
+    //         onChange={handleFile}
+    //         size="small"
+    //         inputProps={{
+    //           accept: "image/*", // ✅ only image files (jpg, png, gif, etc.)
+    //           multiple: true, // ✅ allow multiple selection
+    //         }}
+    //       />
+    //     </div>
+    //   ),
+    // },
     {
       name: "description",
       label: "Description",
@@ -205,7 +205,10 @@ export default function ProductForm() {
 
     const formDataToSend = new FormData();
 
-    formDataToSend.append("product", JSON.stringify(payload));
+    formDataToSend.append(
+      "product",
+      new Blob([JSON.stringify(payload)], { type: "application/json" })
+    );
     if (files?.length) {
       files.forEach((file, index) => {
         formDataToSend.append(`files`, file);
@@ -231,7 +234,12 @@ export default function ProductForm() {
       } else {
         const res = await axios.post(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_PRODUCT_API_PORT}/api/v1/products`,
-          formDataToSend
+          formDataToSend,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
 
         // const res = await axios.post(

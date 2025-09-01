@@ -25,9 +25,8 @@ export default function Layout({ children }) {
           <Sidebar
             isOpen={isSidebarOpen}
             onClose={() => setSidebarOpen(!isSidebarOpen)}
-            setSidebarOpen={setSidebarOpen}
           />
-          <Header />
+          <Header onClose={() => setSidebarOpen(false)} />
         </div>
       )}
     </>

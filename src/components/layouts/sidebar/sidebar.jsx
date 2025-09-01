@@ -150,7 +150,7 @@ const initialNavItems = [
   },
 ];
 
-export default function Sidebar({ isOpen, onClose, setSidebarOpen }) {
+export default function Sidebar({ isOpen, onClose }) {
   const [navItems, setNavItems] = useState(initialNavItems);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);

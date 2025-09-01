@@ -41,6 +41,7 @@ function StockLocationForm() {
     city: "",
     state: "",
     postalCode: "",
+    capacity: "",
   });
 
   const handleCountry = async (e) => {
@@ -107,18 +108,6 @@ function StockLocationForm() {
       validate: (val) => (val ? null : "Warehouse name is required"),
     },
 
-    // {
-    //   name: "gst",
-    //   label: "GST Number",
-    //   type: "text",
-    //   required: true,
-    //   transform: (val) => val.toUpperCase().trim(),
-    //   validate: (val) =>
-    //     /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(val)
-    //       ? null
-    //       : "Invalid GSTIN (e.g., 27ABCDE1234F1Z5)",
-    //   maxLength: 15,
-    // },
     {
       name: "supplier",
       label: "Supplier",
@@ -148,6 +137,22 @@ function StockLocationForm() {
           </FormControl>
         </div>
       ),
+    },
+    {
+      name: "capacity",
+      label: "Capacity",
+      type: "text",
+      required: true,
+      transform: (val) => val,
+      validate: (val) => {
+        if (!/^\d+$/.test(val)) {
+          return "Only numbers are allowed";
+        }
+        if (Number(val) > 10000) {
+          return "Value must not exceed 10000";
+        }
+      },
+      // maxLength: 15,
     },
     {
       name: "country",
@@ -299,6 +304,7 @@ function StockLocationForm() {
             city: data.city,
             state: data.state,
             postalCode: data.postalCode,
+            capacity: data.capacity,
           });
           setCountryCode(data.country);
           setStateCode(data.state);
@@ -321,6 +327,7 @@ function StockLocationForm() {
       "city",
       "state",
       "postalCode",
+      "capacity",
     ];
 
     const missing = requiredFields.filter((f) => !formData[f]);
@@ -339,7 +346,7 @@ function StockLocationForm() {
       state: formData.state,
       country: formData.country,
       postalCode: formData.postalCode,
-      capacity: 500,
+      capacity: formData.capacity,
       phone: "1234",
       email: "abc@gmailcom",
       isActive: true,

@@ -26,7 +26,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 
-export default function Header({ onMenuClick }) {
+export default function Header({ onClose }) {
   const [profilePopUp, setProfilePopUp] = React.useState(null);
   const [createUser, setCreateUser] = React.useState(null);
   const [isEmail, setIsEmail] = useState(false);
@@ -102,6 +102,7 @@ export default function Header({ onMenuClick }) {
     );
 
     dispatch(setPermissions({ allPermissions: allPermissionKeys }));
+    onClose();
     navigate("/");
   };
 

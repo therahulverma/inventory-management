@@ -19,6 +19,7 @@ const selectedColumns = {
   failureRecords: "Error Record",
   status: "Status",
   errorDetails: "Error Details",
+  uploadedAt: "Updated At",
 };
 
 function InventoryUploadList() {
