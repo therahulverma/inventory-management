@@ -64,8 +64,14 @@ const DynamicTable = ({
 
   const columnEntries =
     columns && Object.keys(columns).length > 0
-      ? Object.entries(columns) // [["firstName", "First Name"], ...]
-      : Object.keys(data[0]).map((key) => [key, key]);
+      ? Object.entries(columns).filter(([key]) =>
+          data.some((row) => row[key] !== undefined && row[key] !== null)
+        )
+      : Object.keys(data[0])
+          .filter((key) =>
+            data.some((row) => row[key] !== undefined && row[key] !== null)
+          )
+          .map((key) => [key, key]);
 
   console.log("Columns:", columnEntries);
   const handleChangePage = (event, newPage) => {
@@ -178,7 +184,9 @@ const DynamicTable = ({
                               <MenuList>
                                 <MenuItem
                                   onClick={() => {
-                                    navigate(`${editRoute}${row.id}`);
+                                    navigate(`${editRoute}${row.id}`, {
+                                      state: row,
+                                    });
                                     // handleClose();
                                   }}
                                 >

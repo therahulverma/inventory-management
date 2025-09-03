@@ -146,6 +146,12 @@ const initialNavItems = [
         status: false,
         permissionKey: PERMISSIONS.MASTERCONFIG_PERMISSIONMANAGEMENT_MENU,
       },
+      {
+        label: "Master Data",
+        path: "/role/master-data",
+        status: false,
+        permissionKey: PERMISSIONS.MASTERCONFIG_MASTERDATA_MENU,
+      },
     ],
   },
 ];

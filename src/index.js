@@ -31,6 +31,8 @@ import { Provider } from "react-redux";
 import { store } from "./redux/store.js";
 import StockItemsList from "./pages/stocks/items/stockItemsList.jsx";
 import StockByWarehouseList from "./pages/stocks/stockByWarehouse/stockByWarehouseList.jsx";
+import MasterDataForm from "./pages/masterConfiguration/masterData/masterDataForm.jsx";
+import MasterDataList from "./pages/masterConfiguration/masterData/masterDataList.jsx";
 
 function Dummy({ text }) {
   return <h2 style={{ padding: "20px" }}>{text}</h2>;
@@ -95,9 +97,14 @@ root.render(
                     path="permission-create"
                     element={<PermissionManagementForm mode="create" />}
                   />
+                  <Route path="master-data" element={<MasterDataList />} />
                   <Route
-                    path="role-permission-mapping"
-                    element={<Dummy text="Inventory → Search" />}
+                    path="master-data-create"
+                    element={<MasterDataForm mode="create" />}
+                  />
+                  <Route
+                    path="master-data-edit/:id"
+                    element={<MasterDataForm mode="edit" />}
                   />
                 </Route>
 
