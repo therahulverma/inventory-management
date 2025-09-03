@@ -90,7 +90,7 @@ function MasterDataForm() {
       return;
     }
 
-    console.log("Submitting:", formData);
+    // console.log("Submitting:", formData);
 
     const payload = {
       key: formData.key,
