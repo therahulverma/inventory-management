@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { PERMISSIONS } from "../../../utils/constants";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const selectedColumns = {
   sku: "SKU ID",
@@ -30,6 +31,7 @@ function StockByWarehouseList() {
   const [warehouseId, setWarehouseId] = useState(0);
   const [warehouseData, setWarehouseData] = useState([]);
   const navigate = useNavigate();
+  const cachedToken = Cookies.get("token");
   const { data, loading, error } = useFetchData(
     `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses`
   );
@@ -41,7 +43,12 @@ function StockByWarehouseList() {
     setWarehouseId(e.target.value);
     try {
       const res = await axios.get(
-        `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/inventory/details/${e.target.value}`
+        `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/inventory/details/${e.target.value}`,
+        {
+          headers: {
+            Authorization: `Bearer ${cachedToken}`,
+          },
+        }
       );
 
       setWarehouseData(res?.data?.data);

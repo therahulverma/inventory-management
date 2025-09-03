@@ -25,6 +25,7 @@ import {
 } from "../../../redux/slices/roleManagementSlice";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 export default function Header({ onClose }) {
   const [profilePopUp, setProfilePopUp] = React.useState(null);
@@ -36,6 +37,8 @@ export default function Header({ onClose }) {
   console.log("Role:", role);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const cachedToken = Cookies.get("token");
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -45,11 +48,21 @@ export default function Header({ onClose }) {
           !role // only set if not already selected
         ) {
           const { data } = await axios.get(
-            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/role/${decodedToken.realm_access.roles[0]}`
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/role/${decodedToken.realm_access.roles[0]}`,
+            {
+              headers: {
+                Authorization: `Bearer ${cachedToken}`,
+              },
+            }
           );
 
           const permissions = await axios.get(
-            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${data?.data?.id}/permissions`
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${data?.data?.id}/permissions`,
+            {
+              headers: {
+                Authorization: `Bearer ${cachedToken}`,
+              },
+            }
           );
 
           const allPermissionKeys = permissions?.data?.data.map(
@@ -83,11 +96,21 @@ export default function Header({ onClose }) {
 
   const handleChangeRole = async (e) => {
     const { data } = await axios.get(
-      `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/role/${e.target.value}`
+      `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/role/${e.target.value}`,
+      {
+        headers: {
+          Authorization: `Bearer ${cachedToken}`,
+        },
+      }
     );
 
     const permissions = await axios.get(
-      `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${data?.data?.id}/permissions`
+      `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${data?.data?.id}/permissions`,
+      {
+        headers: {
+          Authorization: `Bearer ${cachedToken}`,
+        },
+      }
     );
     console.log(permissions?.data?.data, "permissions");
     const allPermissionKeys = permissions?.data?.data.map(

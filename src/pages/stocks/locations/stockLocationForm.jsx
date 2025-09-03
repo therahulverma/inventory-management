@@ -12,6 +12,7 @@ import {
   TextField,
 } from "@mui/material";
 import DynamicForm from "../../../components/form/form";
+import Cookies from "js-cookie";
 
 // const apiEndpoints = {
 //   brand: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Brands`,
@@ -23,15 +24,13 @@ import DynamicForm from "../../../components/form/form";
 function StockLocationForm() {
   const navigate = useNavigate();
   const { id } = useParams(); // ✅ get productId from route (for edit)
+  const cachedToken = Cookies.get("token");
   const isEditMode = Boolean(id);
   const [suppliers, setSuppliers] = useState([]);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [states, setStates] = useState([]);
   const [supplierID, setSupplierID] = useState(null);
-  const [countryCode, setCountryCode] = useState(null);
-  const [stateCode, setStateCode] = useState(null);
-  const [cityCode, setCityCode] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -45,7 +44,7 @@ function StockLocationForm() {
   });
 
   const handleCountry = async (e) => {
-    setCountryCode(e.target.value);
+    setFormData({ ...formData, country: e.target.value });
   };
 
   const handleSupplier = async (e) => {
@@ -53,50 +52,125 @@ function StockLocationForm() {
     setFormData({ ...formData, supplier: e.target.value });
   };
   const handleState = async (e) => {
-    setStateCode(e.target.value);
+    setFormData({ ...formData, state: e.target.value });
   };
 
   const handleCity = async (e) => {
-    setCityCode(e.target.value);
+    setFormData({ ...formData, city: e.target.value });
   };
 
   useEffect(() => {
-    async function fetchData() {
+    (async () => {
       try {
-        const { data } = await axios.get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${countryCode}`
-        );
-
-        setStates(data?.data);
-        setFormData({ ...formData, country: countryCode });
-      } catch (err) {
-        alert("Error:", err);
-        console.log("Error:", err);
+        const [countryRes, supplierRes] = await Promise.all([
+          axios.get(
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`,
+            {
+              headers: {
+                Authorization: `Bearer ${cachedToken}`,
+              },
+            }
+          ),
+          axios.get(
+            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/suppliers/names`,
+            {
+              headers: {
+                Authorization: `Bearer ${cachedToken}`,
+              },
+            }
+          ),
+        ]);
+        setCountries(countryRes.data?.data || []);
+        setSuppliers(supplierRes.data?.data || []);
+      } catch (error) {
+        console.error("Error fetching options:", error);
       }
-    }
-    countryCode && fetchData();
-  }, [countryCode]);
+    })();
+  }, []);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const { data } = await axios.get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${stateCode}`
-        );
-
-        setCities(data?.data);
-        setFormData({ ...formData, state: stateCode });
-      } catch (err) {
-        alert("Error:", err);
-        console.log("Error:", err);
-      }
-    }
-    stateCode && fetchData();
-  }, [stateCode]);
+    if (!isEditMode) return;
+    axios
+      .get(
+        `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${cachedToken}`,
+          },
+        }
+      )
+      .then((res) => {
+        const { data } = res.data;
+        setFormData({
+          name: data.name,
+          address: data.address,
+          supplier: data.supplierId,
+          country: data.country,
+          state: data.state,
+          city: data.city,
+          postalCode: data.postalCode,
+          capacity: data.capacity,
+        });
+      })
+      .catch((err) => console.error("Error fetching location:", err));
+  }, [id, isEditMode]);
 
   useEffect(() => {
-    setFormData({ ...formData, city: cityCode });
-  }, [cityCode]);
+    if (!formData.country) return;
+
+    const selected = countries.find((c) => c.value === formData.country);
+    if (!selected) return;
+
+    (async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${selected.shortCode}`,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
+        );
+        setStates(res.data?.data || []);
+
+        // ❌ remove unconditional reset
+        if (!isEditMode) {
+          setCities([]);
+          setFormData((prev) => ({ ...prev, state: "", city: "" }));
+        }
+      } catch (err) {
+        console.error("Error fetching states:", err);
+      }
+    })();
+  }, [formData.country, countries, isEditMode]);
+
+  // ✅ Fetch cities when state changes
+  useEffect(() => {
+    if (!formData.state) return;
+
+    const selected = states.find((s) => s.value === formData.state);
+    if (!selected) return;
+
+    (async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${selected.shortCode}`,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
+        );
+        setCities(res.data?.data || []);
+
+        if (!isEditMode) {
+          setFormData((prev) => ({ ...prev, city: "" }));
+        }
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+      }
+    })();
+  }, [formData.state, states, isEditMode]);
 
   const formConfig = [
     {
@@ -104,7 +178,6 @@ function StockLocationForm() {
       label: "Warehouse Name",
       type: "text",
       required: true,
-      transform: (val) => val.trim(),
       validate: (val) => (val ? null : "Warehouse name is required"),
     },
 
@@ -123,7 +196,7 @@ function StockLocationForm() {
             <Select
               labelId={`supplier-label`}
               id="Supplier"
-              value={supplierID}
+              value={formData.supplier}
               label="Supplier"
               onChange={handleSupplier}
               disabled={false}
@@ -169,13 +242,13 @@ function StockLocationForm() {
             <Select
               labelId={`country-label`}
               id="Country"
-              value={countryCode || ""}
+              value={formData.country || ""}
               label="Country"
               onChange={handleCountry}
               disabled={false}
             >
               {countries.map((opt) => (
-                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                <MenuItem key={opt.id.toString()} value={opt.value}>
                   {opt.value}
                 </MenuItem>
               ))}
@@ -199,13 +272,13 @@ function StockLocationForm() {
             <Select
               labelId={`state-label`}
               id="State"
-              value={stateCode || ""}
+              value={formData.state}
               label="State"
               onChange={handleState}
               disabled={false}
             >
               {states.map((opt) => (
-                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                <MenuItem key={opt.id.toString()} value={opt.value}>
                   {opt.value}
                 </MenuItem>
               ))}
@@ -229,13 +302,13 @@ function StockLocationForm() {
             <Select
               labelId={`city-label`}
               id="City"
-              value={cityCode || ""}
+              value={formData.city}
               label="City"
               onChange={handleCity}
               disabled={false}
             >
               {cities.map((opt) => (
-                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                <MenuItem key={opt.id.toString()} value={opt.value}>
                   {opt.value}
                 </MenuItem>
               ))}
@@ -249,7 +322,7 @@ function StockLocationForm() {
       label: "Pin Code",
       type: "text",
       required: true,
-      transform: (val) => val.trim(),
+      transform: (val) => val,
       validate: (val) =>
         /^\d{6}$/.test(val) ? null : "Invalid Pin Code (must be 6 digits)",
     },
@@ -258,62 +331,12 @@ function StockLocationForm() {
       label: "Address",
       type: "text",
       required: true,
-      transform: (val) => val.trim(),
+      transform: (val) => val,
       validate: (val) => (val ? null : "Address is required"),
     },
   ];
 
-  console.log(formData, "forrm data");
-
-  useEffect(() => {
-    (async () => {
-      try {
-        // const country = await axios.get(
-        //   `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`
-        // );
-        // setCountries(country?.data?.data);
-        const [country, supplier] = await Promise.all([
-          axios.get(
-            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`
-          ),
-          axios.get(
-            `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/suppliers/names`
-          ),
-        ]);
-        setCountries(country?.data?.data);
-        setSuppliers(supplier?.data?.data);
-      } catch (error) {
-        console.error("Error fetching options", error);
-      }
-    })();
-
-    if (isEditMode) {
-      axios
-        .get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses/${id}`
-        )
-        .then((res) => {
-          const { data } = res.data;
-          console.log("Updated Form Data:", data);
-          setFormData({
-            name: data.name,
-            address: data.address,
-            supplier: data.supplierId,
-            // gst: data.name,
-            country: data.country,
-            city: data.city,
-            state: data.state,
-            postalCode: data.postalCode,
-            capacity: data.capacity,
-          });
-          setCountryCode(data.country);
-          setStateCode(data.state);
-          setCityCode(data.city);
-          setSupplierID(data.supplierId);
-        })
-        .catch((err) => console.error("Error fetching location:", err));
-    }
-  }, [id, isEditMode]);
+  console.log(formData, "form data");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -358,7 +381,12 @@ function StockLocationForm() {
         // ✅ PUT API for update
         const res = await axios.put(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses/${id}`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Warehouse updated successfully!");
         console.log("Updated ✅:", res.data);
@@ -366,7 +394,12 @@ function StockLocationForm() {
         // ✅ POST API for create
         const res = await axios.post(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Warehouse created successfully!");
         console.log("Created ✅:", res.data);

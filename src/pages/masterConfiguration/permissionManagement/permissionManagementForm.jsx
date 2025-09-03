@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import SelectField from "../../../components/select/select";
 import { Button, Paper, TextareaAutosize, TextField } from "@mui/material";
+import Cookies from "js-cookie";
 
 // const apiEndpoints = {
 //   brand: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Brands`,
@@ -14,6 +15,7 @@ import { Button, Paper, TextareaAutosize, TextField } from "@mui/material";
 function PermissionManagementForm() {
   const navigate = useNavigate();
   const { id } = useParams(); // ✅ get productId from route (for edit)
+  const cachedToken = Cookies.get("token");
   const isEditMode = Boolean(id);
 
   const [formData, setFormData] = useState({
@@ -44,7 +46,12 @@ function PermissionManagementForm() {
     if (isEditMode) {
       axios
         .get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/warehouses/${id}`
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/warehouses/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         )
         .then((res) => {
           const { data } = res.data;
@@ -104,7 +111,12 @@ function PermissionManagementForm() {
         // ✅ PUT API for update
         const res = await axios.put(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/warehouses/${id}`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Location updated successfully!");
         console.log("Updated ✅:", res.data);
@@ -112,7 +124,12 @@ function PermissionManagementForm() {
         // ✅ POST API for create
         const res = await axios.post(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/permissions`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Permission created successfully!");
         console.log("Created ✅:", res.data);

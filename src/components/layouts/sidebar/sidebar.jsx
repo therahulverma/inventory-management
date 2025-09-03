@@ -192,12 +192,12 @@ export default function Sidebar({ isOpen, onClose }) {
     <div className={`left-panel ${isOpen ? "" : "collapsed"}`}>
       <div className="HeaderLogo">
         <div className="MuiButtonBase-root MuiIconButton-root HeaderIcon">
-          <img src={`${process.env.PUBLIC_URL}/images/logo.svg`} alt="logo" />
+          <img src={`${process.env.PUBLIC_URL}/images/logo_1.svg`} alt="logo" />
         </div>
 
         <div className="HeaderImage">
           <img
-            src={`${process.env.PUBLIC_URL}/images/logoTitle.svg`}
+            src={`${process.env.PUBLIC_URL}/images/logo.svg`}
             alt="Stock Management"
           />
         </div>

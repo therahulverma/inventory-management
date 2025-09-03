@@ -5,67 +5,39 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import DynamicForm from "../../components/form/form";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import Cookies from "js-cookie";
 
 function PartnerForm() {
   const navigate = useNavigate();
+  const cachedToken = Cookies.get("token");
   const { id } = useParams(); // ✅ get productId from route (for edit)
   const isEditMode = Boolean(id);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [states, setStates] = useState([]);
-  const [countryCode, setCountryCode] = useState(null);
-  const [stateCode, setStateCode] = useState(null);
-  const [cityCode, setCityCode] = useState(null);
+  const [formData, setFormData] = useState({
+    companyName: "",
+    email: "",
+    phone: "",
+    gstin: "",
+    address: "",
+    country: "",
+    city: "",
+    state: "",
+    postalCode: "",
+  });
 
   const handleCountry = async (e) => {
-    setCountryCode(e.target.value);
+    setFormData({ ...formData, country: e.target.value });
   };
 
   const handleState = async (e) => {
-    setStateCode(e.target.value);
+    setFormData({ ...formData, state: e.target.value });
   };
 
   const handleCity = async (e) => {
-    setCityCode(e.target.value);
+    setFormData({ ...formData, city: e.target.value });
   };
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const { data } = await axios.get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${countryCode}`
-        );
-
-        setStates(data?.data);
-        setFormData({ ...formData, country: countryCode });
-      } catch (err) {
-        alert("Error:", err);
-        console.log("Error:", err);
-      }
-    }
-    countryCode && fetchData();
-  }, [countryCode]);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const { data } = await axios.get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${stateCode}`
-        );
-
-        setCities(data?.data);
-        setFormData({ ...formData, state: stateCode });
-      } catch (err) {
-        alert("Error:", err);
-        console.log("Error:", err);
-      }
-    }
-    stateCode && fetchData();
-  }, [stateCode]);
-
-  useEffect(() => {
-    setFormData({ ...formData, city: cityCode });
-  }, [cityCode]);
 
   const formConfig = [
     {
@@ -119,13 +91,13 @@ function PartnerForm() {
             <Select
               labelId={`country-label`}
               id="Country"
-              value={countryCode || ""}
+              value={formData.country || ""}
               label="Country"
               onChange={handleCountry}
               disabled={false}
             >
               {countries.map((opt) => (
-                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                <MenuItem key={opt.id.toString()} value={opt.value}>
                   {opt.value}
                 </MenuItem>
               ))}
@@ -149,13 +121,13 @@ function PartnerForm() {
             <Select
               labelId={`state-label`}
               id="State"
-              value={stateCode || ""}
+              value={formData.state}
               label="State"
               onChange={handleState}
               disabled={false}
             >
               {states.map((opt) => (
-                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                <MenuItem key={opt.id.toString()} value={opt.value}>
                   {opt.value}
                 </MenuItem>
               ))}
@@ -179,13 +151,13 @@ function PartnerForm() {
             <Select
               labelId={`city-label`}
               id="City"
-              value={cityCode || ""}
+              value={formData.city}
               label="City"
               onChange={handleCity}
               disabled={false}
             >
               {cities.map((opt) => (
-                <MenuItem key={opt.id.toString()} value={opt.shortCode}>
+                <MenuItem key={opt.id.toString()} value={opt.value}>
                   {opt.value}
                 </MenuItem>
               ))}
@@ -210,47 +182,34 @@ function PartnerForm() {
     },
   ];
 
-  const [formData, setFormData] = useState({
-    companyName: "",
-    email: "",
-    phone: "",
-    gstin: "",
-    address: "",
-    country: "",
-    city: "",
-    state: "",
-    postalCode: "",
-  });
-
   useEffect(() => {
     (async () => {
       try {
         const country = await axios.get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/key/country`,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         setCountries(country?.data?.data);
-        console.log(country, "REACT_APP_MASTER_DATA_API_PORT");
-        // const [brand, size, color, os] = await Promise.all([
-        //   axios.get(apiEndpoints.brand),
-        //   axios.get(apiEndpoints.size),
-        //   axios.get(apiEndpoints.color),
-        //   axios.get(apiEndpoints.os),
-        // ]);
-        // setOptions({
-        //   brand: brand.data.data || [],
-        //   size: size.data.data || [],
-        //   color: color.data.data || [],
-        //   os: os.data.data || [],
-        // });
       } catch (error) {
-        console.error("Error fetching options", error);
+        console.error("Error fetching options:", error);
       }
     })();
+  }, []);
 
+  useEffect(() => {
     if (isEditMode) {
       axios
         .get(
-          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/partners/${id}`
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/partners/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         )
         .then((res) => {
           const { data } = res.data;
@@ -265,13 +224,67 @@ function PartnerForm() {
             state: data.state,
             postalCode: data.postalCode,
           });
-          setCountryCode(data.country);
-          setStateCode(data.state);
-          setCityCode(data.city);
         })
         .catch((err) => console.error("Error fetching product:", err));
     }
   }, [id, isEditMode]);
+
+  useEffect(() => {
+    if (!formData.country) return;
+
+    const selected = countries.find((c) => c.value === formData.country);
+    if (!selected) return;
+
+    (async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${selected.shortCode}`,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
+        );
+        setStates(res.data?.data || []);
+
+        // ❌ remove unconditional reset
+        if (!isEditMode) {
+          setCities([]);
+          setFormData((prev) => ({ ...prev, state: "", city: "" }));
+        }
+      } catch (err) {
+        console.error("Error fetching states:", err);
+      }
+    })();
+  }, [formData.country, countries, isEditMode]);
+
+  // ✅ Fetch cities when state changes
+  useEffect(() => {
+    if (!formData.state) return;
+
+    const selected = states.find((s) => s.value === formData.state);
+    if (!selected) return;
+
+    (async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/children/${selected.shortCode}`,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
+        );
+        setCities(res.data?.data || []);
+
+        if (!isEditMode) {
+          setFormData((prev) => ({ ...prev, city: "" }));
+        }
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+      }
+    })();
+  }, [formData.state, states, isEditMode]);
 
   //   console.log("Options:", options);
 
@@ -317,7 +330,12 @@ function PartnerForm() {
         // ✅ PUT API for update
         const res = await axios.put(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/partners/${id}`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Partner updated successfully!");
         console.log("Updated ✅:", res.data);
@@ -325,7 +343,12 @@ function PartnerForm() {
         // ✅ POST API for create
         const res = await axios.post(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/partners`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Partner created successfully!");
         console.log("Created ✅:", res.data);

@@ -22,12 +22,46 @@ export const AuthProvider = ({ children }) => {
   // Flag to ensure we init only once
   const hasInitialized = useRef(false);
 
+  const isTokenValid = (jwt) => {
+    try {
+      const decoded = jwtDecode(jwt);
+      const expTime = decoded.exp * 1000; // ms
+      return Date.now() < expTime;
+    } catch (e) {
+      return false;
+    }
+  };
+
   useEffect(() => {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
 
-    const initKeycloak = async () => {
+    const initAuth = async () => {
       try {
+        const cachedToken = Cookies.get("token");
+        const cachedUserInfo = Cookies.get("userInfo");
+
+        // ✅ If token exists and still valid → use it
+        if (cachedToken && isTokenValid(cachedToken)) {
+          setToken(cachedToken);
+          setDecodedToken(jwtDecode(cachedToken));
+          setAuthenticated(true);
+
+          if (cachedUserInfo) {
+            setUserInfo(JSON.parse(cachedUserInfo));
+          } else {
+            const info = await keycloak.loadUserInfo();
+            setUserInfo(info);
+            Cookies.set("userInfo", JSON.stringify(info), {
+              secure: true,
+              sameSite: "strict",
+            });
+          }
+          setLoading(false);
+          return;
+        }
+
+        // ❌ Otherwise → fresh login with Keycloak
         const isAuth = await keycloak.init({
           onLoad: "login-required",
           checkLoginIframe: false,
@@ -38,29 +72,18 @@ export const AuthProvider = ({ children }) => {
         setAuthenticated(isAuth);
 
         if (isAuth) {
-          setToken(keycloak.token);
+          const newToken = keycloak.token;
+          setToken(newToken);
 
-          const decoded = jwtDecode(keycloak.token);
+          const decoded = jwtDecode(newToken);
           setDecodedToken(decoded);
 
-          console.log("Decoded JWT:", decoded);
-          // ✅ check cookies first
-          const cachedUserInfo = Cookies.get("userInfo");
+          const info = await keycloak.loadUserInfo();
+          setUserInfo(info);
 
-          if (cachedUserInfo) {
-            setUserInfo(JSON.parse(cachedUserInfo));
-          } else {
-            // Only fetch if not cached
-            const info = await keycloak.loadUserInfo();
-            setUserInfo(info);
-            Cookies.set("userInfo", JSON.stringify(info), {
-              secure: true,
-              sameSite: "strict",
-            });
-          }
-
-          // Always store latest token
-          Cookies.set("token", keycloak.token, {
+          // save latest token + info
+          Cookies.set("token", newToken, { secure: true, sameSite: "strict" });
+          Cookies.set("userInfo", JSON.stringify(info), {
             secure: true,
             sameSite: "strict",
           });
@@ -68,13 +91,13 @@ export const AuthProvider = ({ children }) => {
           keycloak.login();
         }
       } catch (err) {
-        console.error("Keycloak init error:", err);
+        console.error("Auth init error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    initKeycloak();
+    initAuth();
   }, []);
 
   // useEffect(() => {

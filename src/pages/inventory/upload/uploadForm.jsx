@@ -4,9 +4,11 @@ import { Button, Paper, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import TableTopBar from "../../../components/table-top-bar/tableTopBar";
+import Cookies from "js-cookie";
 
 function InventoryUploadForm() {
   const [file, setFile] = useState("");
+  const cachedToken = Cookies.get("token");
 
   const handleFile = (event) => {
     console.log(event.target.files);
@@ -28,6 +30,7 @@ function InventoryUploadForm() {
         formData,
         {
           headers: {
+            Authorization: `Bearer ${cachedToken}`,
             "Content-Type": "multipart/form-data",
           },
         }

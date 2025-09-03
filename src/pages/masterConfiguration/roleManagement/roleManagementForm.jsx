@@ -7,6 +7,7 @@ import DynamicTable from "../../../components/table/dynamicTable";
 import "../../users/users.css";
 import { useDispatch, useSelector } from "react-redux";
 import { setPermissions } from "../../../redux/slices/roleManagementSlice";
+import Cookies from "js-cookie";
 
 // const apiEndpoints = {
 //   brand: `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_MASTER_DATA_API_PORT}/api/v1/constants/Brands`,
@@ -23,6 +24,7 @@ const selectedColumns = {
 };
 
 function RoleManagementForm() {
+  const cachedToken = Cookies.get("token");
   const navigate = useNavigate();
   const { id } = useParams(); // ✅ get productId from route (for edit)
   const dispatch = useDispatch();
@@ -70,7 +72,12 @@ function RoleManagementForm() {
       };
       const res = await axios.post(
         `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${id}/permissions`,
-        payload
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${cachedToken}`,
+          },
+        }
       );
 
       if (res && role_Id == id) {
@@ -103,10 +110,20 @@ function RoleManagementForm() {
         try {
           const [permission, selectedPermissions] = await Promise.all([
             axios.get(
-              `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/permissions`
+              `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/permissions`,
+              {
+                headers: {
+                  Authorization: `Bearer ${cachedToken}`,
+                },
+              }
             ),
             axios.get(
-              `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${id}/permissions`
+              `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/roles/${id}/permissions`,
+              {
+                headers: {
+                  Authorization: `Bearer ${cachedToken}`,
+                },
+              }
             ),
           ]);
 
@@ -149,7 +166,12 @@ function RoleManagementForm() {
         // ✅ PUT API for update
         const res = await axios.put(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_INVENTORY_STOCK_API_PORT}/api/warehouses/${id}`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Location updated successfully!");
         console.log("Updated ✅:", res.data);
@@ -157,7 +179,12 @@ function RoleManagementForm() {
         // ✅ POST API for create
         const res = await axios.post(
           `${process.env.REACT_APP_IP_ADDRESS}${process.env.REACT_APP_USER_SUPPLIER_PARTNER_API_PORT}/api/v1/role`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${cachedToken}`,
+            },
+          }
         );
         alert("Role created successfully!");
         console.log("Created ✅:", res.data);
